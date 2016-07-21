@@ -381,8 +381,9 @@ public class OrderSystemImpl implements OrderSystem {
       return null;
     }
 
-    public Queue<Row> handleBuyerRowQue(String file, List<String> comparekeys, String buyerid) throws IOException {
+    public Queue<Row> handleBuyerRowQue(String file, long startTime, long endTime, String buyerid) throws IOException {
 
+      //从大到小
       Comparator<Row> OrderIsdn =  new Comparator<Row>(){
         public int compare(Row o1, Row o2) {
           // TODO Auto-generated method stub
@@ -396,11 +397,11 @@ public class OrderSystemImpl implements OrderSystem {
           e.printStackTrace();
         }if(numberb > numbera)
           {
-            return -1;
+            return 1;
           }
           else if(numberb < numbera)
           {
-            return 1;
+            return -1;
           }
           else
           {
@@ -421,14 +422,21 @@ public class OrderSystemImpl implements OrderSystem {
         while (line != null) {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
-          if (kvMap.get("buyerid").valueAsString().equals(buyerid))
+          if (kvMap.get("buyerid").valueAsString().equals(buyerid) && kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime)
+          {
             buyerQue.add(kvMap);
+            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
+          }
 
           //读取下一行
           line = bfr.readLine();
           //linecount +=1;
         }
-      } finally {
+      }catch (Exception e)
+      {
+        e.printStackTrace();
+      }
+      finally {
         bfr.close();
       }
 
@@ -708,7 +716,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end1 = System.currentTimeMillis();
     long end =0;
@@ -725,10 +733,10 @@ public class OrderSystemImpl implements OrderSystem {
 
     System.out.println( "construct cost of time :" + (end - start) + "ms");
 
-    /*
-    String buyerid = "ap-ab95-3e7e0ed47717";
-    long startTime = 1470611363;
-    long endTime = 1484693606;
+
+    String buyerid = "ap-8a57-454ce6fcfb19";
+    long startTime = 1470344717;
+    long endTime = 1483767105;
     System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
     Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
     while (it.hasNext()) {
@@ -736,7 +744,7 @@ public class OrderSystemImpl implements OrderSystem {
     }
     //long end = System.currentTimeMillis();
     System.out.println( "construct cost of time :" + (end - start) + "ms");
-    */
+
 
   /*
     String goodid = "gd-abf2-f869a9cea312";
@@ -1009,11 +1017,12 @@ public class OrderSystemImpl implements OrderSystem {
     Queue<Row> buyerQUeue = null;
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
-      buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, comparableKeysOrderingByBuyerCreateTimeOrderId, buyerid);
+        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime-1, buyerid);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
+
 
     final Queue<Row> orderIndexs =buyerQUeue;
 
