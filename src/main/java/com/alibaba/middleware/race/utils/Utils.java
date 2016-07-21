@@ -11,7 +11,7 @@ public class Utils {
      */
     public static String getGoodSuffix(String goodid)
     {
-        String suffix = goodid.toLowerCase().substring(goodid.length()-1) + ".txt";
+        String suffix = goodid.toLowerCase().substring(goodid.length()-2) + ".txt";
         return suffix;
     }
 
@@ -22,8 +22,13 @@ public class Utils {
      */
     public static String getOrderSuffix(long orderid)
     {
-        long suffix = orderid % 20;
+        long suffix = orderid % 1000;
         return suffix + ".txt";
 
+    }
+    public static void main(String[] args)
+    {
+        String id = "123456";
+        System.out.println(getGoodSuffix(id));
     }
 }

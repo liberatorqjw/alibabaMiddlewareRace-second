@@ -30,34 +30,42 @@ public class OperationFiles {
         System.out.println(suffix.length);
         try {
             //buyer
+//            for (String su1: suffix)
+            for (String su2: suffix)
             for (String su : suffix) {
-                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.buyerIndexFile + su + sffix , true);
-                UtilsDataStorge.buyerFileswriterMap.put(OrderSystemImpl.buyerIndexFile + su + sffix, suffixWriter);
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.buyerIndexFile +su2+su + sffix , true);
+                UtilsDataStorge.buyerFileswriterMap.put(OrderSystemImpl.buyerIndexFile +su2+su + sffix, suffixWriter);
 
             }
             //good
+//            for (String su1: suffix)
+            for (String su2: suffix)
             for (String su : suffix) {
-                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.goodIndexFile + su + sffix, true);
-                UtilsDataStorge.goodFileswriterMap.put(OrderSystemImpl.goodIndexFile + su + sffix, suffixWriter);
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.goodIndexFile + su2+su + sffix, true);
+                UtilsDataStorge.goodFileswriterMap.put(OrderSystemImpl.goodIndexFile +su2+su + sffix, suffixWriter);
 
             }
 
             //order buyer
+//            for (String su1: suffix)
+            for (String su2: suffix)
             for (String su : suffix) {
-                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su + sffix, true);
-                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su + sffix, suffixWriter);
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, true);
+                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, suffixWriter);
 
             }
             //order good
+//            for (String su1: suffix)
+            for (String su2: suffix)
             for (String su : suffix) {
-                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderGoodOrderIdFile + su + sffix, true);
-                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderGoodOrderIdFile + su + sffix, suffixWriter);
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, true);
+                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, suffixWriter);
             }
 
             //order index
-            for (String su : ordersuffix) {
-                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderIdexFile + su + sffix, true);
-                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + su+ sffix, suffixWriter);
+            for (int i =0 ; i < 1000; i++) {
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
+                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, suffixWriter);
             }
 
         }catch (Exception e)

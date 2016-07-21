@@ -716,7 +716,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end1 = System.currentTimeMillis();
     long end =0;
