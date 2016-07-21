@@ -726,6 +726,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     // 用例
 
+    /*
     start = System.currentTimeMillis();
     long orderid = 589555952;
     System.out.println("\n查询订单号为" + orderid + "的订单");
@@ -734,6 +735,7 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     System.out.println( "construct cost of time :" + (end - start) + "ms");
+    */
 
    /*
     String buyerid = "ap-8a57-454ce6fcfb19";
@@ -748,7 +750,7 @@ public class OrderSystemImpl implements OrderSystem {
     System.out.println( "construct cost of time :" + (end - start) + "ms");
 
    */
-    /*
+
     String goodid = "gd-abf2-f869a9cea312";
     String salerid = "wx-8e90-9e9f8e06bbe5";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
@@ -761,7 +763,7 @@ public class OrderSystemImpl implements OrderSystem {
       count++;
     }
     System.out.println(count);
-    */
+
 
     /*
     String goodid = "dd-8834-c6874b116c42";
@@ -937,7 +939,7 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
+//      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
 
       if (orderData == null)
         return null;
@@ -1033,7 +1035,7 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
+//      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
 
     }
     else
@@ -1106,7 +1108,7 @@ public class OrderSystemImpl implements OrderSystem {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+//      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
@@ -1175,7 +1177,7 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
+//      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
