@@ -7,6 +7,8 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 订单系统的demo实现，订单数据全部存放在内存中，用简单的方式实现数据存储和查询功能
@@ -663,6 +665,11 @@ public class OrderSystemImpl implements OrderSystem {
   //存order缓存
   public static ConcurrentHashMap<String, Row> orderSearchCache = new ConcurrentHashMap<String, Row>();
 
+  Lock orderlock = new ReentrantLock();
+  Lock orderByBuyerlock = new ReentrantLock();
+  Lock orderBySalerlock = new ReentrantLock();
+  Lock orderSumlock = new ReentrantLock();
+
   public OrderSystemImpl() {
     comparableKeysOrderingByOrderId = new ArrayList<String>();
     comparableKeysOrderingByBuyerCreateTimeOrderId = new ArrayList<String>();
@@ -751,8 +758,8 @@ public class OrderSystemImpl implements OrderSystem {
 
    */
 
-    String goodid = "gd-abf2-f869a9cea312";
-    String salerid = "wx-8e90-9e9f8e06bbe5";
+    String goodid = "gd-8870-0537e54f51ca";
+    String salerid = "ay-a576-84cc0ef460d3";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
     List<String> querykeys  = new ArrayList<String>();
     querykeys.add("goodid");
@@ -939,11 +946,12 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
+      orderlock.lock();
+      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
+      orderlock.unlock();
 
       if (orderData == null)
         return null;
-
 
     }
 
@@ -1035,8 +1043,9 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
-
+      orderByBuyerlock.lock();
+      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
+      orderByBuyerlock.unlock();
     }
     else
     {
@@ -1108,7 +1117,10 @@ public class OrderSystemImpl implements OrderSystem {
       } catch (IOException e) {
         e.printStackTrace();
       }
-//      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+
+      orderBySalerlock.lock();
+      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+      orderBySalerlock.unlock();
 
     }
 
@@ -1177,8 +1189,10 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
-
+      orderSumlock.lock();
+      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
+      orderSumlock.unlock();
+      
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
       }
