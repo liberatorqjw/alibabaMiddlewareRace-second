@@ -3,9 +3,6 @@ package com.alibaba.middleware.race;
 import com.alibaba.middleware.race.data.OperationFiles;
 import com.alibaba.middleware.race.data.UtilsDataStorge;
 import com.alibaba.middleware.race.utils.Utils;
-import sun.org.mozilla.javascript.internal.ast.WhileLoop;
-
-import javax.annotation.processing.SupportedSourceVersion;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
