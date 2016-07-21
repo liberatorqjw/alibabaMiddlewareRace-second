@@ -993,40 +993,41 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime,
       String buyerid) {
 
-    //缓存的key
-//    String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
-//    if (UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey) != null)
-//    {
-//      return UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey);
-//    }
-
-
-    System.out.println("*****query buyerid by time " + buyerid);
-    System.out.println("***** start time " + startTime +" endtime "+ endTime);
-
-
-    Row queryStart = new Row();
-    queryStart.putKV("buyerid", buyerid);
-    queryStart.putKV("createtime", startTime);
-    queryStart.putKV("orderid", Long.MIN_VALUE);
-
-    Row queryEnd = new Row();
-    queryEnd.putKV("buyerid", buyerid);
-    queryEnd.putKV("createtime", endTime - 1); // exclusive end
-    queryEnd.putKV("orderid", Long.MAX_VALUE);
-
-    String suffixIndexFile = Utils.getGoodSuffix(buyerid);
-
     Queue<Row> buyerQUeue = null;
+    //缓存的key
+    String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
+    if (UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey) == null) {
+
+      System.out.println("*****query buyerid by time " + buyerid);
+      System.out.println("***** start time " + startTime + " endtime " + endTime);
+
+
+      Row queryStart = new Row();
+      queryStart.putKV("buyerid", buyerid);
+      queryStart.putKV("createtime", startTime);
+      queryStart.putKV("orderid", Long.MIN_VALUE);
+
+      Row queryEnd = new Row();
+      queryEnd.putKV("buyerid", buyerid);
+      queryEnd.putKV("createtime", endTime - 1); // exclusive end
+      queryEnd.putKV("orderid", Long.MAX_VALUE);
+
+      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
+
+
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
-        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime-1, buyerid);
+        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime - 1, buyerid);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
+    else
+    {
+      buyerQUeue = UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey);
 
-
+    }
     final Queue<Row> orderIndexs =buyerQUeue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
@@ -1057,43 +1058,48 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersBySaler(String salerid, String goodid,
       Collection<String> keys) {
 
-//    String cacheKey = salerid + "_"+ goodid;
-//    if (keys !=null) {
-//      for (String key : keys) {
-//        cacheKey += "_" + key;
-//      }
-//    }
-//    if (UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey) != null)
-//      return UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey);
-
-    System.out.println("*****query saler by id " + salerid);
-    System.out.println("*****query goodid by id " + goodid);
-
+    Queue<Row> orderDataSortedBySalerQueue = null;
     final Collection<String> queryKeys = keys;
 
-    Row queryStart = new Row();
-    queryStart.putKV("goodid", goodid);
-    queryStart.putKV("orderid", Long.MIN_VALUE);
+    String cacheKey = salerid + "_"+ goodid;
+    if (keys !=null) {
+      for (String key : keys) {
+        cacheKey += "_" + key;
+      }
+    }
+    if (UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey) == null) {
+      System.out.println("*****query saler by id " + salerid);
+      System.out.println("*****query goodid by id " + goodid);
 
-    Row queryEnd = new Row();
-    queryEnd.putKV("goodid", goodid);
-    queryEnd.putKV("orderid", Long.MAX_VALUE);
 
 
-    String suffixIndexFile = Utils.getGoodSuffix(goodid);
+      Row queryStart = new Row();
+      queryStart.putKV("goodid", goodid);
+      queryStart.putKV("orderid", Long.MIN_VALUE);
 
-    Queue<Row> orderDataSortedBySalerQueue = null;
+      Row queryEnd = new Row();
+      queryEnd.putKV("goodid", goodid);
+      queryEnd.putKV("orderid", Long.MAX_VALUE);
+
+
+      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+
+
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
-     orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
+        orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
 
+    else {
+      orderDataSortedBySalerQueue = UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey);
+    }
 
-     final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
+    final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
@@ -1124,39 +1130,45 @@ public class OrderSystemImpl implements OrderSystem {
 
   public KeyValue sumOrdersByGood(String goodid, String key) {
 
-//    String cacheKey = goodid;
-//    if (key != null) {
-//      cacheKey += "_" + key;
-//    }
+    Queue<Row> orderDataSortedByGoodQueue = null;
 
-//    if (UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey) != null)
-//      return UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey);
-
-        System.out.println("***** query the sum of some keys in goodid : " + goodid + "key :" + key);
-
-        Row queryStart = new Row();
-        queryStart.putKV("goodid", goodid);
-        queryStart.putKV("orderid", Long.MIN_VALUE);
-        Row queryEnd = new Row();
-        queryEnd.putKV("goodid", goodid);
-        queryEnd.putKV("orderid", Long.MAX_VALUE);
-
-
-        String suffixIndexFile = Utils.getGoodSuffix(goodid);
-
-        Queue<Row> orderDataSortedByGoodQueue = null;
-        try {
-          DataIndexFileHandler DIF = new DataIndexFileHandler();
-          orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingByGoodOrderId, goodid);
-
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-
-    if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
-      return null;
+    String cacheKey = goodid;
+    if (key != null) {
+      cacheKey += "_" + key;
     }
+//
+    if (UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey) == null) {
 
+      System.out.println("***** query the sum of some keys in goodid : " + goodid + "key :" + key);
+
+      Row queryStart = new Row();
+      queryStart.putKV("goodid", goodid);
+      queryStart.putKV("orderid", Long.MIN_VALUE);
+      Row queryEnd = new Row();
+      queryEnd.putKV("goodid", goodid);
+      queryEnd.putKV("orderid", Long.MAX_VALUE);
+
+
+      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+
+
+      try {
+        DataIndexFileHandler DIF = new DataIndexFileHandler();
+        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingByGoodOrderId, goodid);
+
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
+        return null;
+      }
+    }
+    else
+    {
+      orderDataSortedByGoodQueue = UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey);
+
+    }
     HashSet<String> queryingKeys = new HashSet<String>();
     queryingKeys.add(key);
     List<ResultImpl> allData = new ArrayList<ResultImpl>(orderDataSortedByGoodQueue.size());

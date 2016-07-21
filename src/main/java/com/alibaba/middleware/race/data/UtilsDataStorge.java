@@ -1,11 +1,14 @@
 package com.alibaba.middleware.race.data;
 
 import com.alibaba.middleware.race.OrderSystem;
+import com.alibaba.middleware.race.OrderSystemImpl;
 
 import java.io.BufferedOutputStream;
 import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -41,11 +44,11 @@ public class UtilsDataStorge {
      */
     public static ConcurrentHashMap<String, OrderSystem.Result> orderSearchCache = new ConcurrentHashMap<String, OrderSystem.Result>();
 
-    public static ConcurrentHashMap<String, Iterator<OrderSystem.Result>> queryOrdersByBuyCache = new ConcurrentHashMap<String, Iterator<OrderSystem.Result>>();
+    public static ConcurrentHashMap<String, Queue> queryOrdersByBuyCache = new ConcurrentHashMap<String, Queue>();
 
-    public static ConcurrentHashMap<String, Iterator<OrderSystem.Result>> queryOrdersBySalerCache = new ConcurrentHashMap<String, Iterator<OrderSystem.Result>>();
+    public static ConcurrentHashMap<String, Queue> queryOrdersBySalerCache = new ConcurrentHashMap<String, Queue>();
 
-    public static ConcurrentHashMap<String, OrderSystem.KeyValue> sumOrdersByGoodCache = new ConcurrentHashMap<String, OrderSystem.KeyValue>();
+    public static ConcurrentHashMap<String, Queue> sumOrdersByGoodCache = new ConcurrentHashMap<String, Queue>();
 
 
 
