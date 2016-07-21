@@ -425,7 +425,7 @@ public class OrderSystemImpl implements OrderSystem {
           if (kvMap.get("buyerid").valueAsString().equals(buyerid) && kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime)
           {
             buyerQue.add(kvMap);
-            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
+//            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
           }
 
           //读取下一行
@@ -733,7 +733,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     System.out.println( "construct cost of time :" + (end - start) + "ms");
 
-
+   /*
     String buyerid = "ap-8a57-454ce6fcfb19";
     long startTime = 1470344717;
     long endTime = 1483767105;
@@ -745,20 +745,23 @@ public class OrderSystemImpl implements OrderSystem {
     //long end = System.currentTimeMillis();
     System.out.println( "construct cost of time :" + (end - start) + "ms");
 
+   */
 
-  /*
     String goodid = "gd-abf2-f869a9cea312";
     String salerid = "wx-8e90-9e9f8e06bbe5";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
-    Iterator it = os.queryOrdersBySaler(salerid, goodid, new ArrayList<String>());
+    List<String> querykeys  = new ArrayList<String>();
+    querykeys.add("goodid");
+    Iterator it = os.queryOrdersBySaler(salerid, goodid, querykeys);
     int count =0;
     while (it.hasNext()) {
       System.out.println(it.next());
       count++;
     }
     System.out.println(count);
-   */
 
+
+    /*
     String goodid = "dd-8834-c6874b116c42";
     String attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
@@ -777,7 +780,7 @@ public class OrderSystemImpl implements OrderSystem {
     if (sum == null) {
       System.out.println("由于该字段不存在，返回值是null");
     }
-
+*/
   }
 
   private BufferedReader createReader(String file) throws FileNotFoundException {
@@ -991,11 +994,11 @@ public class OrderSystemImpl implements OrderSystem {
       String buyerid) {
 
     //缓存的key
-    String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
-    if (UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey) != null)
-    {
-      return UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey);
-    }
+//    String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
+//    if (UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey) != null)
+//    {
+//      return UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey);
+//    }
 
 
     System.out.println("*****query buyerid by time " + buyerid);
@@ -1047,7 +1050,6 @@ public class OrderSystemImpl implements OrderSystem {
 
       }
     };
-    UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, result);
 
     return  result;
   }
@@ -1055,14 +1057,14 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersBySaler(String salerid, String goodid,
       Collection<String> keys) {
 
-    String cacheKey = salerid + "_"+ goodid;
-    if (keys !=null) {
-      for (String key : keys) {
-        cacheKey += "_" + key;
-      }
-    }
-    if (UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey) != null)
-      return UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey);
+//    String cacheKey = salerid + "_"+ goodid;
+//    if (keys !=null) {
+//      for (String key : keys) {
+//        cacheKey += "_" + key;
+//      }
+//    }
+//    if (UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey) != null)
+//      return UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey);
 
     System.out.println("*****query saler by id " + salerid);
     System.out.println("*****query goodid by id " + goodid);
@@ -1078,7 +1080,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryEnd.putKV("orderid", Long.MAX_VALUE);
 
 
-      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+    String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
     Queue<Row> orderDataSortedBySalerQueue = null;
 
@@ -1091,7 +1093,7 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
 
-     final   Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
+     final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
@@ -1116,19 +1118,19 @@ public class OrderSystemImpl implements OrderSystem {
         // ignore
       }
     };
-    UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, result);
+//    UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, result);
     return result;
   }
 
   public KeyValue sumOrdersByGood(String goodid, String key) {
 
-    String cacheKey = goodid;
-    if (key != null) {
-      cacheKey += "_" + key;
-    }
+//    String cacheKey = goodid;
+//    if (key != null) {
+//      cacheKey += "_" + key;
+//    }
 
-    if (UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey) != null)
-      return UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey);
+//    if (UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey) != null)
+//      return UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey);
 
         System.out.println("***** query the sum of some keys in goodid : " + goodid + "key :" + key);
 
@@ -1178,7 +1180,7 @@ public class OrderSystemImpl implements OrderSystem {
       if (hasValidData) {
 
         KV result = new KV(key, Long.toString(sum));
-        UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, result);
+//        UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, result);
         return result;
       }
     } catch (TypeException e) {
@@ -1197,7 +1199,7 @@ public class OrderSystemImpl implements OrderSystem {
       }
       if (hasValidData) {
         KV result = new KV(key, Double.toString(sum));
-        UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, result);
+//        UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, result);
         return result;
 
       }
