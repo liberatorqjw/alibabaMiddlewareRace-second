@@ -42,7 +42,6 @@ public class UtilsDataStorge {
     /**
      * 应对热点查询的缓存机制
      */
-    public static ConcurrentHashMap<String, OrderSystem.Result> orderSearchCache = new ConcurrentHashMap<String, OrderSystem.Result>();
 
     public static ConcurrentHashMap<String, Queue> queryOrdersByBuyCache = new ConcurrentHashMap<String, Queue>();
 
