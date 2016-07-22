@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de67648e-d9cc-43d8-ad49-4e87530d0dc6" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/alibaba/middleware/race/OrderSystemImpl.java" afterPath="$PROJECT_DIR$/src/main/java/com/alibaba/middleware/race/OrderSystemImpl.java" />
-    </list>
+    <list default="true" id="de67648e-d9cc-43d8-ad49-4e87530d0dc6" name="Default" comment="" />
     <ignored path="order-system-impl.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -28,7 +26,7 @@
       <file leaf-file-name="OrderSystemImpl.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/alibaba/middleware/race/OrderSystemImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5857339">
+            <state vertical-scroll-proportion="0.6803841">
               <caret line="951" column="0" selection-start-line="951" selection-start-column="0" selection-end-line="951" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -497,12 +495,12 @@
       <workItem from="1468976719921" duration="15287000" />
       <workItem from="1469064732448" duration="3643000" />
       <workItem from="1469078067175" duration="16165000" />
-      <workItem from="1469103160386" duration="5254000" />
+      <workItem from="1469103160386" duration="5853000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="45512000" />
+    <option name="totallyTimeSpent" value="46111000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="24" width="1535" height="876" extended-state="6" />
@@ -673,7 +671,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="104" column="19" selection-start-line="104" selection-start-column="19" selection-end-line="104" selection-end-column="19" />
           <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -701,7 +699,7 @@
         <state vertical-scroll-proportion="0.33190578">
           <caret line="132" column="19" selection-start-line="132" selection-start-column="19" selection-end-line="132" selection-end-column="19" />
           <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -738,7 +736,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/alibaba/middleware/race/OrderSystemImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5857339">
+        <state vertical-scroll-proportion="0.6803841">
           <caret line="951" column="0" selection-start-line="951" selection-start-column="0" selection-end-line="951" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
