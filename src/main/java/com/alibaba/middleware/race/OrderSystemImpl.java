@@ -651,6 +651,56 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
   }
+
+  /**
+   *  多线程构建树
+   */
+  private class ConstructTree implements Runnable
+  {
+
+    private Collection<String> files;
+    private CountDownLatch latch;
+    private TreeMap tmpTree;
+    private List<String> compareKeys;
+
+    public ConstructTree(Collection<String> files, CountDownLatch latch, TreeMap tmpTree, List<String> compareKeys) {
+      this.files = files;
+      this.latch = latch;
+      this.tmpTree = tmpTree;
+      this.compareKeys = compareKeys;
+    }
+
+    @Override
+    public void run() {
+      try {
+        for (String file : files) {
+          BufferedReader bfr = createReader(file);
+          try {
+            String line = bfr.readLine();
+            while (line != null) {
+              Row kvMap = createKVMapFromLine(line);
+              handleRow(kvMap);
+              line = bfr.readLine();
+            }
+          } finally {
+            bfr.close();
+          }
+        }
+        latch.countDown();
+
+      }catch (Exception e)
+      {
+        e.printStackTrace();
+      }
+
+    }
+
+    private void handleRow(Row row)
+    {
+      tmpTree.put(new ComparableKeys(
+              compareKeys, row), row);
+    }
+  }
 //  TreeMap<ComparableKeys, Row> orderDataSortedByOrder = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
 //  TreeMap<ComparableKeys, Row> orderDataSortedByBuyerCreateTime = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
 //  TreeMap<ComparableKeys, Row> orderDataSortedBySalerGood = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
@@ -913,29 +963,31 @@ public class OrderSystemImpl implements OrderSystem {
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(1);
+    CountDownLatch latch = new CountDownLatch(3);
 
 //    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
     new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
-    // Handling goodFiles
-    new DataFileHandler() {
-      @Override
-      void handleRow(Row row) {
-        goodDataStoredByGood.put(new ComparableKeys(
-                comparableKeysOrderingByGood, row), row);
-      }
-    }.handle(goodFiles);
-
-
-    // Handling buyerFiles
-    new DataFileHandler() {
-      @Override
-      void handleRow(Row row) {
-        buyerDataStoredByBuyer.put(new ComparableKeys(
-                comparableKeysOrderingByBuyer, row), row);
-      }
-    }.handle(buyerFiles);
+    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
+    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
+//    // Handling goodFiles
+//    new DataFileHandler() {
+//      @Override
+//      void handleRow(Row row) {
+//        goodDataStoredByGood.put(new ComparableKeys(
+//                comparableKeysOrderingByGood, row), row);
+//      }
+//    }.handle(goodFiles);
+//
+//
+//    // Handling buyerFiles
+//    new DataFileHandler() {
+//      @Override
+//      void handleRow(Row row) {
+//        buyerDataStoredByBuyer.put(new ComparableKeys(
+//                comparableKeysOrderingByBuyer, row), row);
+//      }
+//    }.handle(buyerFiles);
 
     latch.await();
 

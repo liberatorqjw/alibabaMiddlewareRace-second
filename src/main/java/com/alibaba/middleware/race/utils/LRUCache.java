@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Collection;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * An LRU cache, based on <code>LinkedHashMap</code>.
@@ -25,6 +27,8 @@ public class LRUCache<K,V> {
 
     private LinkedHashMap<K,V>   map;
     private int                  cacheSize;
+    private Lock lock;
+
 
     /**
      * Creates a new LRU cache.
@@ -32,6 +36,7 @@ public class LRUCache<K,V> {
      */
     public LRUCache (int cacheSize) {
         this.cacheSize = cacheSize;
+        lock = new ReentrantLock();
         int hashTableCapacity = (int)Math.ceil(cacheSize / hashTableLoadFactor) + 1;
         map = new LinkedHashMap<K,V>(hashTableCapacity, hashTableLoadFactor, true) {
             // (an anonymous inner class)
@@ -46,7 +51,13 @@ public class LRUCache<K,V> {
      * @return    the value associated to this key, or null if no value with this key exists in the cache.
      */
     public synchronized V get (K key) {
-        return map.get(key); }
+        try {
+            lock.lock();
+            return map.get(key);
+        }finally {
+            lock.unlock();
+        }
+    }
 
     /**
      * Adds an entry to this cache.
@@ -57,7 +68,14 @@ public class LRUCache<K,V> {
      * @param value  a value to be associated with the specified key.
      */
     public synchronized void put (K key, V value) {
-        map.put (key, value); }
+        try
+        {
+            lock.lock();
+          map.put (key, value);
+        }finally {
+            lock.unlock();
+        }
+    }
 
     /**
      * Clears the cache.
