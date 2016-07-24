@@ -2,6 +2,7 @@ package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.data.OperationFiles;
 import com.alibaba.middleware.race.data.UtilsDataStorge;
+import com.alibaba.middleware.race.utils.LRUCache;
 import com.alibaba.middleware.race.utils.Utils;
 import java.io.*;
 import java.util.*;
@@ -670,6 +671,11 @@ public class OrderSystemImpl implements OrderSystem {
   Lock orderBySalerlock = new ReentrantLock();
   Lock orderSumlock = new ReentrantLock();
 
+  LRUCache<String, Row> queryOrderCache ;
+  LRUCache<String, Queue<Row>> queryByBuyerCache;
+  LRUCache<String, Queue<Row>> queryBySalerCache;
+  LRUCache<String, Queue<Row>> sumOrderCache;
+
   public OrderSystemImpl() {
     comparableKeysOrderingByOrderId = new ArrayList<String>();
     comparableKeysOrderingByBuyerCreateTimeOrderId = new ArrayList<String>();
@@ -694,6 +700,12 @@ public class OrderSystemImpl implements OrderSystem {
     comparableKeysOrderingByGood.add("goodid");
 
     comparableKeysOrderingByBuyer.add("buyerid");
+
+    queryOrderCache = new LRUCache<String, Row>(10000);
+    queryByBuyerCache = new LRUCache<String, Queue<Row>>(10000);
+    queryBySalerCache = new LRUCache<String, Queue<Row>>(10000);
+    sumOrderCache = new LRUCache<String, Queue<Row>>(10000);
+
   }
 
   public static void main(String[] args) throws IOException,
@@ -927,7 +939,7 @@ public class OrderSystemImpl implements OrderSystem {
       for (String key : keys)
         cacheKey += "_" + key;
     }
-    if (OrderSystemImpl.orderSearchCache.get(cacheKey) == null) {
+    if (queryOrderCache.get(cacheKey) == null) {
 
 
       Row query = new Row();
@@ -949,6 +961,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderlock.lock();
 //      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
 //      orderlock.unlock();
+      queryOrderCache.put(cacheKey, orderData);
 
       if (orderData == null)
         return null;
@@ -957,7 +970,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     else
     {
-      orderData = OrderSystemImpl.orderSearchCache.get(cacheKey);
+      orderData = queryOrderCache.get(cacheKey);
       if (orderData == null)
         return null;
     }
@@ -1016,7 +1029,7 @@ public class OrderSystemImpl implements OrderSystem {
     Queue<Row> buyerQUeue = null;
     //缓存的key
     String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
-    if (UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey) == null) {
+    if (queryByBuyerCache.get(cacheKey) == null) {
 
       System.out.println("*****query buyerid by time " + buyerid);
       System.out.println("***** start time " + startTime + " endtime " + endTime);
@@ -1046,10 +1059,11 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderByBuyerlock.lock();
 //      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
 //      orderByBuyerlock.unlock();
+      queryByBuyerCache.put(cacheKey, buyerQUeue);
     }
     else
     {
-      buyerQUeue = UtilsDataStorge.queryOrdersByBuyCache.get(cacheKey);
+      buyerQUeue = queryByBuyerCache.get(cacheKey);
 
     }
     final Queue<Row> orderIndexs =buyerQUeue;
@@ -1091,7 +1105,7 @@ public class OrderSystemImpl implements OrderSystem {
         cacheKey += "_" + key;
       }
     }
-    if (UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey) == null) {
+    if (queryBySalerCache.get(cacheKey) == null) {
       System.out.println("*****query saler by id " + salerid);
       System.out.println("*****query goodid by id " + goodid);
 
@@ -1121,11 +1135,12 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderBySalerlock.lock();
 //      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 //      orderBySalerlock.unlock();
+      queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
     else {
-      orderDataSortedBySalerQueue = UtilsDataStorge.queryOrdersBySalerCache.get(cacheKey);
+      orderDataSortedBySalerQueue = queryBySalerCache.get(cacheKey);
     }
 
     final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
@@ -1166,7 +1181,7 @@ public class OrderSystemImpl implements OrderSystem {
       cacheKey += "_" + key;
     }
 //
-    if (UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey) == null) {
+    if (sumOrderCache.get(cacheKey) == null) {
 
       System.out.println("***** query the sum of some keys in goodid : " + goodid + "key :" + key);
 
@@ -1192,6 +1207,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderSumlock.lock();
 //      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
 //      orderSumlock.unlock();
+      sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
@@ -1201,7 +1217,7 @@ public class OrderSystemImpl implements OrderSystem {
     }
     else
     {
-      orderDataSortedByGoodQueue = UtilsDataStorge.sumOrdersByGoodCache.get(cacheKey);
+      orderDataSortedByGoodQueue = sumOrderCache.get(cacheKey);
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
       }
