@@ -31,6 +31,7 @@ public class OperationFiles {
         try {
             //buyer
 //            for (String su1: suffix)
+            /*
             for (String su2: suffix)
             for (String su : suffix) {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.buyerIndexFile +su2+su + sffix , true);
@@ -45,6 +46,7 @@ public class OperationFiles {
                 UtilsDataStorge.goodFileswriterMap.put(OrderSystemImpl.goodIndexFile +su2+su + sffix, suffixWriter);
 
             }
+            */
 
             //order buyer
 //            for (String su1: suffix)

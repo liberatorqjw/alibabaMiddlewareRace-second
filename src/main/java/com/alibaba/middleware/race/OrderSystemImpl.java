@@ -1022,10 +1022,8 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      orderlock.lock();
-//      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
-//      orderlock.unlock();
-//      queryOrderCache.put(cacheKey, orderData);
+
+      queryOrderCache.put(cacheKey, orderData);
 
       if (orderData == null)
         return null;
@@ -1130,10 +1128,8 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      orderByBuyerlock.lock();
-//      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
-//      orderByBuyerlock.unlock();
-//      queryByBuyerCache.put(cacheKey, buyerQUeue);
+
+      queryByBuyerCache.put(cacheKey, buyerQUeue);
     }
     else
     {
@@ -1207,10 +1203,7 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      orderBySalerlock.lock();
-//      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
-//      orderBySalerlock.unlock();
-//      queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+      queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
@@ -1280,10 +1273,7 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-//      orderSumlock.lock();
-//      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
-//      orderSumlock.unlock();
-//      sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
+      sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
