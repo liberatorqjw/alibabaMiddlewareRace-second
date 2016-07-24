@@ -1,5 +1,11 @@
 package com.alibaba.middleware.race.utils;
 
+import com.alibaba.middleware.race.OrderSystemImpl;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Queue;
+
 /**
  * Created by Liberatorqjw on 2016/7/20.
  */
@@ -26,9 +32,13 @@ public class Utils {
         return suffix + ".txt";
 
     }
-    public static void main(String[] args)
-    {
-        String id = "123456";
-        System.out.println(getGoodSuffix(id));
+
+    public static void PrintCache(LRUCache<String, Queue<OrderSystemImpl.Row>> cache) {
+
+        for (Map.Entry<String, Queue<OrderSystemImpl.Row>> entry : cache.getAll())
+        {
+            System.out.println("key :" + entry.getKey() + "value :" + entry.getValue());
+        }
+
     }
 }
