@@ -33,11 +33,12 @@ public class Utils {
 
     }
 
-    public static void PrintCache(LRUCache<String, Queue<OrderSystemImpl.Row>> cache) {
+    public static void PrintCache(LRUCache<String, Queue<OrderSystemImpl.Row>> cache, String query) {
 
+        System.out.println("query: " + query);
         for (Map.Entry<String, Queue<OrderSystemImpl.Row>> entry : cache.getAll())
         {
-            System.out.println("key :" + entry.getKey() + "value :" + entry.getValue());
+            System.out.println("*******key :" + entry.getKey() + "**value :" + entry.getValue().size());
         }
 
     }

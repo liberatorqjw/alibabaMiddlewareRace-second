@@ -1135,7 +1135,7 @@ public class OrderSystemImpl implements OrderSystem {
     {
       buyerQUeue = queryByBuyerCache.get(cacheKey);
       System.out.println("buyercache get the row size " + buyerQUeue.size());
-      Utils.PrintCache(queryByBuyerCache);
+      Utils.PrintCache(queryByBuyerCache, "queryBuyer");
 
     }
     final Queue<Row> orderIndexs =buyerQUeue;
@@ -1210,7 +1210,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     else {
       orderDataSortedBySalerQueue = queryBySalerCache.get(cacheKey);
-      Utils.PrintCache(queryBySalerCache);
+      Utils.PrintCache(queryBySalerCache, "querySaler");
       System.out.println("saler get from the cache the size is " + orderDataSortedBySalerQueue.size());
     }
 
@@ -1286,7 +1286,7 @@ public class OrderSystemImpl implements OrderSystem {
     else
     {
       orderDataSortedByGoodQueue = sumOrderCache.get(cacheKey);
-      Utils.PrintCache(sumOrderCache);
+      Utils.PrintCache(sumOrderCache, "sumorder");
       System.out.println("sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
