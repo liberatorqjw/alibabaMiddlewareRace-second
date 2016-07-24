@@ -655,8 +655,8 @@ public class OrderSystemImpl implements OrderSystem {
 //  TreeMap<ComparableKeys, Row> orderDataSortedByBuyerCreateTime = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
 //  TreeMap<ComparableKeys, Row> orderDataSortedBySalerGood = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
 //  TreeMap<ComparableKeys, Row> orderDataSortedByGood = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
-//  TreeMap<ComparableKeys, Row> buyerDataStoredByBuyer = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
-//  TreeMap<ComparableKeys, Row> goodDataStoredByGood = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
+  TreeMap<ComparableKeys, Row> buyerDataStoredByBuyer = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
+  TreeMap<ComparableKeys, Row> goodDataStoredByGood = new TreeMap<OrderSystemImpl.ComparableKeys, Row>();
   public static String goodIndexFile= "goodIndexFile";
   public static String orderIdexFile = "orderIndexFile";
   public static String buyerIndexFile = "buyerIndexFile";
@@ -737,7 +737,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end1 = System.currentTimeMillis();
     long end =0;
@@ -882,22 +882,16 @@ public class OrderSystemImpl implements OrderSystem {
   }
   private abstract class DataFileHandler {
     abstract void handleRow(Row row);
-    abstract void handleRow(Row row, String address);
 
-    void handle(Collection<String> files, int flag) throws IOException {
+    void handle(Collection<String> files) throws IOException {
       for (String file : files) {
         BufferedReader bfr = createReader(file);
         try {
-          int linecount =0;
           String line = bfr.readLine();
           while (line != null) {
-
-            Row kvMap = createKVMapFromLineToSome(line, flag);// 返回的是一条数据的map
-            handleRow(kvMap, file.trim() + "," + String.valueOf(linecount));
-
-            //读取下一行
+            Row kvMap = createKVMapFromLine(line);
+            handleRow(kvMap);
             line = bfr.readLine();
-            linecount +=1;
           }
         } finally {
           bfr.close();
@@ -919,11 +913,29 @@ public class OrderSystemImpl implements OrderSystem {
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(3);
+    CountDownLatch latch = new CountDownLatch(1);
 
-    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
+//    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
     new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
-    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
+//    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
+    // Handling goodFiles
+    new DataFileHandler() {
+      @Override
+      void handleRow(Row row) {
+        goodDataStoredByGood.put(new ComparableKeys(
+                comparableKeysOrderingByGood, row), row);
+      }
+    }.handle(goodFiles);
+
+
+    // Handling buyerFiles
+    new DataFileHandler() {
+      @Override
+      void handleRow(Row row) {
+        buyerDataStoredByBuyer.put(new ComparableKeys(
+                comparableKeysOrderingByBuyer, row), row);
+      }
+    }.handle(buyerFiles);
 
     latch.await();
 
@@ -961,7 +973,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderlock.lock();
 //      OrderSystemImpl.orderSearchCache.put(cacheKey, orderData);
 //      orderlock.unlock();
-      queryOrderCache.put(cacheKey, orderData);
+//      queryOrderCache.put(cacheKey, orderData);
 
       if (orderData == null)
         return null;
@@ -986,6 +998,7 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     //从获取到的索引来获取真实的数据
+    /*
     Row buyerData = null;
     Row goodData = null;
 
@@ -1012,6 +1025,14 @@ public class OrderSystemImpl implements OrderSystem {
       } catch (IOException e) {
         e.printStackTrace();
       }
+      */
+    Row buyerQuery = new Row(orderData.getKV("buyerid"));
+    Row buyerData = buyerDataStoredByBuyer.get(new ComparableKeys(
+            comparableKeysOrderingByBuyer, buyerQuery));
+
+    Row goodQuery = new Row(orderData.getKV("goodid"));
+    Row goodData = goodDataStoredByGood.get(new ComparableKeys(
+            comparableKeysOrderingByGood, goodQuery));
 
     return ResultImpl.createResultRow(orderData, buyerData, goodData,
             createQueryKeys(keys));
@@ -1060,7 +1081,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderByBuyerlock.lock();
 //      UtilsDataStorge.queryOrdersByBuyCache.put(cacheKey, buyerQUeue);
 //      orderByBuyerlock.unlock();
-      queryByBuyerCache.put(cacheKey, buyerQUeue);
+//      queryByBuyerCache.put(cacheKey, buyerQUeue);
     }
     else
     {
@@ -1137,7 +1158,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderBySalerlock.lock();
 //      UtilsDataStorge.queryOrdersBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 //      orderBySalerlock.unlock();
-      queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+//      queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
@@ -1210,7 +1231,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      orderSumlock.lock();
 //      UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, orderDataSortedByGoodQueue);
 //      orderSumlock.unlock();
-      sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
+//      sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
