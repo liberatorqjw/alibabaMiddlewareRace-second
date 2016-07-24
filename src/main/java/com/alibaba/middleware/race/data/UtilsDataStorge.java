@@ -39,16 +39,5 @@ public class UtilsDataStorge {
     public static ConcurrentHashMap<String, FileWriter> buyerFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
 
 
-    /**
-     * 应对热点查询的缓存机制
-     */
-
-    public static ConcurrentHashMap<String, Queue> queryOrdersByBuyCache = new ConcurrentHashMap<String, Queue>();
-
-    public static ConcurrentHashMap<String, Queue> queryOrdersBySalerCache = new ConcurrentHashMap<String, Queue>();
-
-    public static ConcurrentHashMap<String, Queue> sumOrdersByGoodCache = new ConcurrentHashMap<String, Queue>();
-
-
 
 }

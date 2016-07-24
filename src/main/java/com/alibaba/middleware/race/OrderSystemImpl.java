@@ -971,6 +971,7 @@ public class OrderSystemImpl implements OrderSystem {
     else
     {
       orderData = queryOrderCache.get(cacheKey);
+      System.out.println("get the order form the cache " + orderData.size());
       if (orderData == null)
         return null;
     }
@@ -993,7 +994,7 @@ public class OrderSystemImpl implements OrderSystem {
       //索引map
       try {
         DataIndexFileHandler DIF = new  DataIndexFileHandler();
-      buyerData =  DIF.handleBuyerLine(OrderSystemImpl.buyerIndexFile + suffix, comparableKeysOrderingByBuyer, orderData.getKV("buyerid").valueAsString());
+        buyerData =  DIF.handleBuyerLine(OrderSystemImpl.buyerIndexFile + suffix, comparableKeysOrderingByBuyer, orderData.getKV("buyerid").valueAsString());
 
 
       } catch (IOException e) {
@@ -1064,6 +1065,7 @@ public class OrderSystemImpl implements OrderSystem {
     else
     {
       buyerQUeue = queryByBuyerCache.get(cacheKey);
+      System.out.println("buyercache get the row size " + buyerQUeue.size());
 
     }
     final Queue<Row> orderIndexs =buyerQUeue;
@@ -1141,6 +1143,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     else {
       orderDataSortedBySalerQueue = queryBySalerCache.get(cacheKey);
+      System.out.println("saler get from the cache the size is " + orderDataSortedBySalerQueue.size());
     }
 
     final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
@@ -1218,6 +1221,8 @@ public class OrderSystemImpl implements OrderSystem {
     else
     {
       orderDataSortedByGoodQueue = sumOrderCache.get(cacheKey);
+      System.out.println("sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
+
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
         return null;
       }
