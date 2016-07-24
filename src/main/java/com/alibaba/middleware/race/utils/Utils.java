@@ -4,6 +4,7 @@ import com.alibaba.middleware.race.OrderSystemImpl;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 
 /**
@@ -33,12 +34,23 @@ public class Utils {
 
     }
 
-    public static void PrintCache(LRUCache<String, Queue<OrderSystemImpl.Row>> cache, String query) {
+    public static void PrintCache(LRUCache<String, Object> cache, String query) {
 
         System.out.println("query: " + query);
-        for (Map.Entry<String, Queue<OrderSystemImpl.Row>> entry : cache.getAll())
+        for (Map.Entry<String, Object> entry : cache.getAll())
         {
-            System.out.println("*******key :" + entry.getKey() + "**value :" + entry.getValue().size());
+            System.out.println("*******key :" + entry.getKey() + "**value :" + ((PriorityQueue)entry.getValue()).size());
+        }
+
+    }
+    public static void PrintCacheTest(LRUCache<String, Object> cache) {
+
+
+        for (Map.Entry<String, Object> entry : cache.getAll())
+        {
+            PriorityQueue value = (PriorityQueue) entry.getValue();
+            System.out.println("*******key :" + entry.getKey() + "**value :" + value.size());
+            System.out.println("#####################################");
         }
 
     }

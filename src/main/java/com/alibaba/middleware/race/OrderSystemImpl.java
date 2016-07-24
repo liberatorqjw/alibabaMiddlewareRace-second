@@ -384,7 +384,7 @@ public class OrderSystemImpl implements OrderSystem {
       return null;
     }
 
-    public Queue<Row> handleBuyerRowQue(String file, long startTime, long endTime, String buyerid) throws IOException {
+    public PriorityQueue<Row> handleBuyerRowQue(String file, long startTime, long endTime, String buyerid) throws IOException {
 
       //从大到小
       Comparator<Row> OrderIsdn =  new Comparator<Row>(){
@@ -500,7 +500,7 @@ public class OrderSystemImpl implements OrderSystem {
       return null;
     }
 
-    public Queue<Row> handleGoodRowQueue(String file, List<String> comparekeys, String goodid) throws IOException {
+    public PriorityQueue<Row> handleGoodRowQueue(String file, List<String> comparekeys, String goodid) throws IOException {
 
       Comparator<Row> OrderIsdn =  new Comparator<Row>(){
         public int compare(Row o1, Row o2) {
@@ -722,9 +722,10 @@ public class OrderSystemImpl implements OrderSystem {
   Lock orderSumlock = new ReentrantLock();
 
   LRUCache<String, Row> queryOrderCache ;
-  LRUCache<String, Queue<Row>> queryByBuyerCache;
-  LRUCache<String, Queue<Row>> queryBySalerCache;
-  LRUCache<String, Queue<Row>> sumOrderCache;
+  LRUCache<String, Object> queryByBuyerCache;
+  LRUCache<String, Object> queryBySalerCache;
+  LRUCache<String, Object> sumOrderCache;
+//  LRUCache<String, Object>  testcache;
 
   public OrderSystemImpl() {
     comparableKeysOrderingByOrderId = new ArrayList<String>();
@@ -752,9 +753,10 @@ public class OrderSystemImpl implements OrderSystem {
     comparableKeysOrderingByBuyer.add("buyerid");
 
     queryOrderCache = new LRUCache<String, Row>(10000);
-    queryByBuyerCache = new LRUCache<String, Queue<Row>>(10000);
-    queryBySalerCache = new LRUCache<String, Queue<Row>>(10000);
-    sumOrderCache = new LRUCache<String, Queue<Row>>(10000);
+    queryByBuyerCache = new LRUCache<String, Object>(10000);
+    queryBySalerCache = new LRUCache<String, Object>(10000);
+    sumOrderCache = new LRUCache<String, Object>(10000);
+//    testcache = new LRUCache<String, Object>(10000);
 
   }
 
@@ -827,11 +829,21 @@ public class OrderSystemImpl implements OrderSystem {
     querykeys.add("goodid");
     Iterator it = os.queryOrdersBySaler(salerid, goodid, querykeys);
     int count =0;
-    while (it.hasNext()) {
-      System.out.println(it.next());
-      count++;
-    }
-    System.out.println(count);
+//    while (it.hasNext()) {
+//      System.out.println(it.next());
+//      count++;
+//    }
+//    System.out.println(count);
+
+
+     goodid = "al-9c4b-d5d5da969170";
+     salerid = "tm-aff2-7a1793da34da";
+     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
+     querykeys  = new ArrayList<String>();
+     querykeys.add("goodid");
+     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
+     count =0;
+
 
 
     /*
@@ -963,10 +975,10 @@ public class OrderSystemImpl implements OrderSystem {
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(3);
+    CountDownLatch latch = new CountDownLatch(2);
 
 //    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
-    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
+//    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
     new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
     new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
@@ -1098,7 +1110,7 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime,
       String buyerid) {
 
-    Queue<Row> buyerQUeue = null;
+    PriorityQueue<Row> buyerQUeue = null;
     //缓存的key
     String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
     if (queryByBuyerCache.get(cacheKey) == null) {
@@ -1130,12 +1142,13 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       queryByBuyerCache.put(cacheKey, buyerQUeue);
+
     }
     else
     {
-      buyerQUeue = queryByBuyerCache.get(cacheKey);
+      buyerQUeue = (PriorityQueue<Row>) queryByBuyerCache.get(cacheKey);
       System.out.println("buyercache get the row size " + buyerQUeue.size());
-      Utils.PrintCache(queryByBuyerCache, "queryBuyer");
+//      Utils.PrintCache(queryByBuyerCache, "queryBuyer");
 
     }
     final Queue<Row> orderIndexs =buyerQUeue;
@@ -1168,7 +1181,7 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersBySaler(String salerid, String goodid,
       Collection<String> keys) {
 
-    Queue<Row> orderDataSortedBySalerQueue = null;
+    PriorityQueue<Row> orderDataSortedBySalerQueue = null;
     final Collection<String> queryKeys = keys;
 
     String cacheKey = salerid + "_"+ goodid;
@@ -1204,15 +1217,20 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
+//      Queue<Row> value = orderDataSortedBySalerQueue;
       queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+//      testcache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
     else {
-      orderDataSortedBySalerQueue = queryBySalerCache.get(cacheKey);
-      Utils.PrintCache(queryBySalerCache, "querySaler");
+      orderDataSortedBySalerQueue = (PriorityQueue<Row>)queryBySalerCache.get(cacheKey);
+//      Utils.PrintCache(queryBySalerCache, "querySaler");
       System.out.println("saler get from the cache the size is " + orderDataSortedBySalerQueue.size());
     }
+
+//    Utils.PrintCache(queryBySalerCache, "querySaler");
+//    Utils.PrintCacheTest(testcache);
 
     final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
 
@@ -1245,7 +1263,7 @@ public class OrderSystemImpl implements OrderSystem {
 
   public KeyValue sumOrdersByGood(String goodid, String key) {
 
-    Queue<Row> orderDataSortedByGoodQueue = null;
+    PriorityQueue<Row> orderDataSortedByGoodQueue = null;
 
     String cacheKey = goodid;
     if (key != null) {
@@ -1285,8 +1303,8 @@ public class OrderSystemImpl implements OrderSystem {
     }
     else
     {
-      orderDataSortedByGoodQueue = sumOrderCache.get(cacheKey);
-      Utils.PrintCache(sumOrderCache, "sumorder");
+      orderDataSortedByGoodQueue = (PriorityQueue<Row>)sumOrderCache.get(cacheKey);
+//      Utils.PrintCache(sumOrderCache, "sumorder");
       System.out.println("sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
