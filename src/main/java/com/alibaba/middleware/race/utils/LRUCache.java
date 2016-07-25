@@ -113,6 +113,7 @@ public class LRUCache<K,V> {
         if (!c.get("5").equals("five"))        throw new Error();
         if (!c.get("2").equals("two"))         throw new Error();
         // List cache content.
+        String two = c.get("2");
         for (Map.Entry<String, String> e : c.getAll())
             System.out.println (e.getKey() + " : " + e.getValue()); }
 

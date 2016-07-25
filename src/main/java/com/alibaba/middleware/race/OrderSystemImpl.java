@@ -714,7 +714,7 @@ public class OrderSystemImpl implements OrderSystem {
   public static String orderSalerGoodOrderIdFile = "orderIndexBySalerGoodFile";
   public static String orderGoodOrderIdFile = "orderIndexByGoodFile";
   //存order缓存
-  public static ConcurrentHashMap<String, Row> orderSearchCache = new ConcurrentHashMap<String, Row>();
+//  public static ConcurrentHashMap<String, Row> orderSearchCache = new ConcurrentHashMap<String, Row>();
 
   Lock orderlock = new ReentrantLock();
   Lock orderByBuyerlock = new ReentrantLock();
@@ -752,10 +752,10 @@ public class OrderSystemImpl implements OrderSystem {
 
     comparableKeysOrderingByBuyer.add("buyerid");
 
-    queryOrderCache = new LRUCache<String, Row>(10000);
-    queryByBuyerCache = new LRUCache<String, Object>(10000);
-    queryBySalerCache = new LRUCache<String, Object>(10000);
-    sumOrderCache = new LRUCache<String, Object>(10000);
+    queryOrderCache = new LRUCache<String, Row>(1000);
+    queryByBuyerCache = new LRUCache<String, Object>(1000);
+    queryBySalerCache = new LRUCache<String, Object>(1000);
+    sumOrderCache = new LRUCache<String, Object>(1000);
 //    testcache = new LRUCache<String, Object>(10000);
 
   }
@@ -766,7 +766,6 @@ public class OrderSystemImpl implements OrderSystem {
     // init order system
     List<String> orderFiles = new ArrayList<String>();
     List<String> buyerFiles = new ArrayList<String>();
-    ;
     List<String> goodFiles = new ArrayList<String>();
     List<String> storeFolders = new ArrayList<String>();
 
@@ -834,31 +833,42 @@ public class OrderSystemImpl implements OrderSystem {
 //      count++;
 //    }
 //    System.out.println(count);
+    while (it.hasNext())
+    {
+      it.next();
+      count++;
+    }
+    System.out.println(count);
 
-
-     goodid = "al-9c4b-d5d5da969170";
-     salerid = "tm-aff2-7a1793da34da";
+     goodid = "gd-8870-0537e54f51ca";//"al-9c4b-d5d5da969170";
+     salerid = "ay-a576-84cc0ef460d3";//"tm-aff2-7a1793da34da";
      System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
      querykeys  = new ArrayList<String>();
      querykeys.add("goodid");
      it = os.queryOrdersBySaler(salerid, goodid, querykeys);
      count =0;
+    while (it.hasNext())
+    {
+      it.next();
+      count++;
+    }
+    System.out.println(count);
 
 
 
-    /*
-    String goodid = "dd-8834-c6874b116c42";
+
+    goodid = "dd-8834-c6874b116c42";
     String attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     System.out.println(os.sumOrdersByGood(goodid, attr));
 
-    attr = "done";
+    attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     KeyValue sum = os.sumOrdersByGood(goodid, attr);
     if (sum == null) {
       System.out.println("由于该字段是布尔类型，返回值是null");
     }
-
+    /*
     attr = "foo";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     sum = os.sumOrdersByGood(goodid, attr);
@@ -1155,17 +1165,21 @@ public class OrderSystemImpl implements OrderSystem {
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
-      Queue<Row> o =orderIndexs;
+//      Queue<Row> o =orderIndexs;
+
+      Iterator<Row> iterator = orderIndexs.iterator();
 
       public boolean hasNext() {
-        return o != null && o.size() > 0;
+//        return o != null && o.size() > 0;
+      return iterator.hasNext();
       }
 
       public Result next() {
         if (!hasNext()) {
           return null;
         }
-        Row orderData = o.poll();
+//        Row orderData = o.poll();
+        Row orderData = iterator.next();
 
         return createResultFromOrderData(orderData, null);
       }
@@ -1218,28 +1232,37 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
 //      Queue<Row> value = orderDataSortedBySalerQueue;
-      queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+        queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
 //      testcache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
     else {
+
       orderDataSortedBySalerQueue = (PriorityQueue<Row>)queryBySalerCache.get(cacheKey);
 //      Utils.PrintCache(queryBySalerCache, "querySaler");
       System.out.println("saler get from the cache the size is " + orderDataSortedBySalerQueue.size());
+//      System.out.println(this.queryBySalerCache.get(cacheKey));
+
     }
 
 //    Utils.PrintCache(queryBySalerCache, "querySaler");
 //    Utils.PrintCacheTest(testcache);
 
+//    Row[] tmpdata = (Row[]) orderDataSortedBySalerQueue.toArray();
+
     final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
+//    for (int i =0 ; i< tmpdata.length; i++)
+//      orderIndexsBySaler.
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
-    Queue<Row> o = orderIndexsBySaler;
+//    Queue<Row> o = orderIndexsBySaler;
+      Iterator<Row> iterator = orderIndexsBySaler.iterator();
 
       public boolean hasNext() {
-        return o != null && o.size() > 0;
+//        return o != null && o.size() > 0;
+        return iterator.hasNext();
       }
 
       public Result next() {
@@ -1247,7 +1270,8 @@ public class OrderSystemImpl implements OrderSystem {
           return null;
         }
 
-        Row orderData = o.poll();
+//        Row orderData = o.poll();
+        Row orderData = iterator.next();
 
 
         return createResultFromOrderData(orderData, createQueryKeys(queryKeys));
@@ -1272,7 +1296,7 @@ public class OrderSystemImpl implements OrderSystem {
 //
     if (sumOrderCache.get(cacheKey) == null) {
 
-      System.out.println("***** query the sum of some keys in goodid : " + goodid + "key :" + key);
+      System.out.println("***** query the sum of some keys in goodid : " + goodid + " key :" + key);
 
       Row queryStart = new Row();
       queryStart.putKV("goodid", goodid);
@@ -1295,7 +1319,7 @@ public class OrderSystemImpl implements OrderSystem {
 
       sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
 
-      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
+      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
         return null;
       }
 
@@ -1307,7 +1331,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      Utils.PrintCache(sumOrderCache, "sumorder");
       System.out.println("sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
 
-      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.isEmpty()) {
+      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
         return null;
       }
 
@@ -1316,10 +1340,17 @@ public class OrderSystemImpl implements OrderSystem {
     queryingKeys.add(key);
     List<ResultImpl> allData = new ArrayList<ResultImpl>(orderDataSortedByGoodQueue.size());
 
-    while (orderDataSortedByGoodQueue.size() > 0){
+    Iterator<Row> sumit = orderDataSortedByGoodQueue.iterator();
 
-      allData.add(createResultFromOrderData(orderDataSortedByGoodQueue.poll(), queryingKeys));
+    while (sumit.hasNext())
+    {
+      allData.add(createResultFromOrderData(sumit.next(), queryingKeys));
     }
+
+//    while (orderDataSortedByGoodQueue.size() > 0){
+//
+//      allData.add(createResultFromOrderData(orderDataSortedByGoodQueue.poll(), queryingKeys));
+//    }
 
     // accumulate as Long
     try {

@@ -39,7 +39,7 @@ public class Utils {
         System.out.println("query: " + query);
         for (Map.Entry<String, Object> entry : cache.getAll())
         {
-            System.out.println("*******key :" + entry.getKey() + "**value :" + ((PriorityQueue)entry.getValue()).size());
+            System.out.println("*******key :" + entry.getKey() + "**value :" + ((PriorityQueue<OrderSystemImpl.Row>) entry.getValue()).size());
         }
 
     }
