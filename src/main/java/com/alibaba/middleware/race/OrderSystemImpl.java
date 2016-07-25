@@ -752,10 +752,10 @@ public class OrderSystemImpl implements OrderSystem {
 
     comparableKeysOrderingByBuyer.add("buyerid");
 
-    queryOrderCache = new LRUCache<String, Row>(10000);
-    queryByBuyerCache = new LRUCache<String, Object>(10000);
-    queryBySalerCache = new LRUCache<String, Object>(10000);
-    sumOrderCache = new LRUCache<String, Object>(10000);
+    queryOrderCache = new LRUCache<String, Row>(1000);
+    queryByBuyerCache = new LRUCache<String, Object>(1000);
+    queryBySalerCache = new LRUCache<String, Object>(1000);
+    sumOrderCache = new LRUCache<String, Object>(1000);
 //    testcache = new LRUCache<String, Object>(10000);
 
   }
