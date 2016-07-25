@@ -853,14 +853,14 @@ public class OrderSystemImpl implements OrderSystem {
 //     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
 //     querykeys  = new ArrayList<String>();
 //     querykeys.add("goodid");
-//     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
-//     count =0;
-//    while (it.hasNext())
-//    {
-//      System.out.println(it.next());
-//      count++;
-//    }
-//    System.out.println(count);
+     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
+     count =0;
+    while (it.hasNext())
+    {
+      System.out.println(it.next());
+      count++;
+    }
+    System.out.println(count);
 //
 //
 //
@@ -993,11 +993,11 @@ public class OrderSystemImpl implements OrderSystem {
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(2);
+    CountDownLatch latch = new CountDownLatch(3);
 
 //    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
 //    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
-//    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
+    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
     new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
     new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
 
