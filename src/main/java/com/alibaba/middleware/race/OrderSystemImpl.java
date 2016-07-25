@@ -1146,7 +1146,7 @@ public class OrderSystemImpl implements OrderSystem {
         tmpQueue.add(buyerQUeue.poll());
       }
 
-      queryByBuyerCache.put(cacheKey, tmpQueue);
+//      queryByBuyerCache.put(cacheKey, tmpQueue);
 
     }
     else
@@ -1233,11 +1233,9 @@ public class OrderSystemImpl implements OrderSystem {
       {
         tmpQueue.add(orderDataSortedBySalerQueue.poll());
       }
-
-//      Queue<Row> value = orderDataSortedBySalerQueue;
+      
 //        queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
-      queryBySalerCache.put(cacheKey, tmpQueue);
-//      testcache.put(cacheKey, orderDataSortedBySalerQueue);
+//      queryBySalerCache.put(cacheKey, tmpQueue);
 
     }
 
