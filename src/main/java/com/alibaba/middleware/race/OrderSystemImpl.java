@@ -4,6 +4,8 @@ import com.alibaba.middleware.race.data.OperationFiles;
 import com.alibaba.middleware.race.data.UtilsDataStorge;
 import com.alibaba.middleware.race.utils.LRUCache;
 import com.alibaba.middleware.race.utils.Utils;
+import sun.org.mozilla.javascript.internal.ast.WhileLoop;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -821,12 +823,17 @@ public class OrderSystemImpl implements OrderSystem {
 
    */
 
-    String goodid = "gd-8870-0537e54f51ca";
-    String salerid = "ay-a576-84cc0ef460d3";
+    String goodid = "al-814a-e3bba7062bdd";
+    String salerid = "ay-9f78-e1fe3f5fb5ce";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
     List<String> querykeys  = new ArrayList<String>();
-    querykeys.add("goodid");
-    Iterator it = os.queryOrdersBySaler(salerid, goodid, querykeys);
+    querykeys.add("good_name");
+    querykeys.add("a_o_12490");
+    querykeys.add("a_o_4082");
+    querykeys.add("buyerid");
+    querykeys.add("a_o_9238");
+
+    Iterator<Result> it = os.queryOrdersBySaler(salerid, goodid, querykeys);
     int count =0;
 //    while (it.hasNext()) {
 //      System.out.println(it.next());
@@ -835,39 +842,40 @@ public class OrderSystemImpl implements OrderSystem {
 //    System.out.println(count);
     while (it.hasNext())
     {
-      it.next();
+      System.out.println(it.next());
+
       count++;
     }
-    System.out.println(count);
+     System.out.println(count);
 
-     goodid = "gd-8870-0537e54f51ca";//"al-9c4b-d5d5da969170";
-     salerid = "ay-a576-84cc0ef460d3";//"tm-aff2-7a1793da34da";
-     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
-     querykeys  = new ArrayList<String>();
-     querykeys.add("goodid");
-     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
-     count =0;
-    while (it.hasNext())
-    {
-      it.next();
-      count++;
-    }
-    System.out.println(count);
-
-
-
-
-    goodid = "dd-8834-c6874b116c42";
-    String attr = "amount";
-    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-    System.out.println(os.sumOrdersByGood(goodid, attr));
-
-    attr = "amount";
-    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-    KeyValue sum = os.sumOrdersByGood(goodid, attr);
-    if (sum == null) {
-      System.out.println("由于该字段是布尔类型，返回值是null");
-    }
+//     goodid = "al-9c4b-d5d5da969170";
+//     salerid = "tm-aff2-7a1793da34da";
+//     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
+//     querykeys  = new ArrayList<String>();
+//     querykeys.add("goodid");
+//     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
+//     count =0;
+//    while (it.hasNext())
+//    {
+//      System.out.println(it.next());
+//      count++;
+//    }
+//    System.out.println(count);
+//
+//
+//
+//
+//    goodid = "dd-8834-c6874b116c42";
+//    String attr = "amount";
+//    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+//    System.out.println(os.sumOrdersByGood(goodid, attr));
+//
+//    attr = "amount";
+//    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+//    KeyValue sum = os.sumOrdersByGood(goodid, attr);
+//    if (sum == null) {
+//      System.out.println("由于该字段是布尔类型，返回值是null");
+//    }
     /*
     attr = "foo";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
@@ -985,31 +993,14 @@ public class OrderSystemImpl implements OrderSystem {
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(3);
+    CountDownLatch latch = new CountDownLatch(2);
 
 //    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
 //    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
-    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
+//    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
     new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
     new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
-//    // Handling goodFiles
-//    new DataFileHandler() {
-//      @Override
-//      void handleRow(Row row) {
-//        goodDataStoredByGood.put(new ComparableKeys(
-//                comparableKeysOrderingByGood, row), row);
-//      }
-//    }.handle(goodFiles);
-//
-//
-//    // Handling buyerFiles
-//    new DataFileHandler() {
-//      @Override
-//      void handleRow(Row row) {
-//        buyerDataStoredByBuyer.put(new ComparableKeys(
-//                comparableKeysOrderingByBuyer, row), row);
-//      }
-//    }.handle(buyerFiles);
+
 
     latch.await();
 
@@ -1121,6 +1112,8 @@ public class OrderSystemImpl implements OrderSystem {
       String buyerid) {
 
     PriorityQueue<Row> buyerQUeue = null;
+    List<Row> tmpQueue = new ArrayList<Row>();
+
     //缓存的key
     String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
     if (queryByBuyerCache.get(cacheKey) == null) {
@@ -1150,18 +1143,24 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
+      while (buyerQUeue.size() >0)
+      {
+        tmpQueue.add(buyerQUeue.poll());
+      }
 
-      queryByBuyerCache.put(cacheKey, buyerQUeue);
+      queryByBuyerCache.put(cacheKey, tmpQueue);
 
     }
     else
     {
-      buyerQUeue = (PriorityQueue<Row>) queryByBuyerCache.get(cacheKey);
-      System.out.println("buyercache get the row size " + buyerQUeue.size());
+//      buyerQUeue = (PriorityQueue<Row>) queryByBuyerCache.get(cacheKey);
+      tmpQueue = (List<Row>)queryByBuyerCache.get(cacheKey);
+      System.out.println("buyercache get the row size " + tmpQueue.size());
 //      Utils.PrintCache(queryByBuyerCache, "queryBuyer");
 
     }
-    final Queue<Row> orderIndexs =buyerQUeue;
+//    final PriorityQueue<Row> orderIndexs =buyerQUeue;
+    final List<Row> orderIndexs = tmpQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
@@ -1196,6 +1195,8 @@ public class OrderSystemImpl implements OrderSystem {
       Collection<String> keys) {
 
     PriorityQueue<Row> orderDataSortedBySalerQueue = null;
+    List<Row> tmpQueue = new ArrayList<Row>();
+
     final Collection<String> queryKeys = keys;
 
     String cacheKey = salerid + "_"+ goodid;
@@ -1221,8 +1222,6 @@ public class OrderSystemImpl implements OrderSystem {
 
       String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
-
-
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
         orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
@@ -1231,29 +1230,33 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
+      //把数值进行有序的存储
+      while (orderDataSortedBySalerQueue.size() > 0)
+      {
+        tmpQueue.add(orderDataSortedBySalerQueue.poll());
+      }
+
 //      Queue<Row> value = orderDataSortedBySalerQueue;
-        queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+//        queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
+      queryBySalerCache.put(cacheKey, tmpQueue);
 //      testcache.put(cacheKey, orderDataSortedBySalerQueue);
 
     }
 
     else {
 
-      orderDataSortedBySalerQueue = (PriorityQueue<Row>)queryBySalerCache.get(cacheKey);
+//      orderDataSortedBySalerQueue = (PriorityQueue<Row>)queryBySalerCache.get(cacheKey);
 //      Utils.PrintCache(queryBySalerCache, "querySaler");
-      System.out.println("saler get from the cache the size is " + orderDataSortedBySalerQueue.size());
+      tmpQueue = (List<Row>) queryBySalerCache.get(cacheKey);
+
+      System.out.println("saler get from the cache the size is " + tmpQueue.size());
 //      System.out.println(this.queryBySalerCache.get(cacheKey));
 
     }
 
-//    Utils.PrintCache(queryBySalerCache, "querySaler");
-//    Utils.PrintCacheTest(testcache);
+//    final  PriorityQueue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
 
-//    Row[] tmpdata = (Row[]) orderDataSortedBySalerQueue.toArray();
-
-    final  Queue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
-//    for (int i =0 ; i< tmpdata.length; i++)
-//      orderIndexsBySaler.
+    final  List<Row> orderIndexsBySaler = tmpQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
