@@ -993,11 +993,11 @@ public class OrderSystemImpl implements OrderSystem {
 
     CountDownLatch latch = new CountDownLatch(3);
 
-//    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
-//    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
+    new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
+    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
     new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
-    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
-    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
+//    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
+//    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
 
 
     latch.await();
@@ -1059,7 +1059,7 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     //从获取到的索引来获取真实的数据
-    /*
+
     Row buyerData = null;
     Row goodData = null;
 
@@ -1086,14 +1086,14 @@ public class OrderSystemImpl implements OrderSystem {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      */
-    Row buyerQuery = new Row(orderData.getKV("buyerid"));
-    Row buyerData = buyerDataStoredByBuyer.get(new ComparableKeys(
-            comparableKeysOrderingByBuyer, buyerQuery));
 
-    Row goodQuery = new Row(orderData.getKV("goodid"));
-    Row goodData = goodDataStoredByGood.get(new ComparableKeys(
-            comparableKeysOrderingByGood, goodQuery));
+//    Row buyerQuery = new Row(orderData.getKV("buyerid"));
+//    Row buyerData = buyerDataStoredByBuyer.get(new ComparableKeys(
+//            comparableKeysOrderingByBuyer, buyerQuery));
+//
+//    Row goodQuery = new Row(orderData.getKV("goodid"));
+//    Row goodData = goodDataStoredByGood.get(new ComparableKeys(
+//            comparableKeysOrderingByGood, goodQuery));
 
     return ResultImpl.createResultRow(orderData, buyerData, goodData,
             createQueryKeys(keys));
