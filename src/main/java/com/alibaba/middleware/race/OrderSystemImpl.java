@@ -782,8 +782,8 @@ public class OrderSystemImpl implements OrderSystem {
     goodFiles.add(dirpath + "good.1.1");
     goodFiles.add(dirpath + "good.2.2");
 
-    storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/indexAll/");
-    UtilsDataStorge.storeFolder = "/media/qinjiawei/000C8D1A0003D585/prerun_data/indexAll/";
+    storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/indexgood_buyer/");
+    UtilsDataStorge.storeFolder = "/media/qinjiawei/000C8D1A0003D585/prerun_data/indexgood_buyer/";
     OrderSystem os = new OrderSystemImpl();
 
     long start = System.currentTimeMillis();
@@ -796,7 +796,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     // 用例
 
-    /*
+
     start = System.currentTimeMillis();
     long orderid = 589555952;
     System.out.println("\n查询订单号为" + orderid + "的订单");
@@ -805,9 +805,9 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     System.out.println( "construct cost of time :" + (end - start) + "ms");
-    */
 
-   /*
+
+
     String buyerid = "ap-8a57-454ce6fcfb19";
     long startTime = 1470344717;
     long endTime = 1483767105;
@@ -819,8 +819,9 @@ public class OrderSystemImpl implements OrderSystem {
     //long end = System.currentTimeMillis();
     System.out.println( "construct cost of time :" + (end - start) + "ms");
 
-   */
 
+
+    /*
     String goodid = "al-814a-e3bba7062bdd";
     String salerid = "ay-9f78-e1fe3f5fb5ce";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
@@ -859,6 +860,7 @@ public class OrderSystemImpl implements OrderSystem {
       count++;
     }
     System.out.println(count);
+    */
 //
 //
 //
@@ -988,14 +990,16 @@ public class OrderSystemImpl implements OrderSystem {
       UtilsDataStorge.storeFolder = store;
       break;
     }
+
+    UtilsDataStorge.order_files = orderFiles;
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(3);
+    CountDownLatch latch = new CountDownLatch(2);
 
     new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
     new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
-    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
+//    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
 //    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
 
@@ -1025,8 +1029,10 @@ public class OrderSystemImpl implements OrderSystem {
       //索引文件的后缀名称
       String suffix = Utils.getOrderSuffix(orderId);
       try {
-        DataIndexFileHandler DIF = new DataIndexFileHandler();
-        orderData = DIF.handleOrderLine(OrderSystemImpl.orderIdexFile + suffix, comparableKeysOrderingByOrderId, orderId);
+//        DataIndexFileHandler DIF = new DataIndexFileHandler();
+//        orderData = DIF.handleOrderLine(OrderSystemImpl.orderIdexFile + suffix, comparableKeysOrderingByOrderId, orderId);
+        orderData = queryOrderByViolence(orderId);
+
       } catch (IOException e) {
         e.printStackTrace();
       } catch (Exception e) {
@@ -1120,22 +1126,23 @@ public class OrderSystemImpl implements OrderSystem {
       System.out.println("***** start time " + startTime + " endtime " + endTime);
 
 
-      Row queryStart = new Row();
-      queryStart.putKV("buyerid", buyerid);
-      queryStart.putKV("createtime", startTime);
-      queryStart.putKV("orderid", Long.MIN_VALUE);
+//      Row queryStart = new Row();
+//      queryStart.putKV("buyerid", buyerid);
+//      queryStart.putKV("createtime", startTime);
+//      queryStart.putKV("orderid", Long.MIN_VALUE);
+//
+//      Row queryEnd = new Row();
+//      queryEnd.putKV("buyerid", buyerid);
+//      queryEnd.putKV("createtime", endTime - 1); // exclusive end
+//      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
-      Row queryEnd = new Row();
-      queryEnd.putKV("buyerid", buyerid);
-      queryEnd.putKV("createtime", endTime - 1); // exclusive end
-      queryEnd.putKV("orderid", Long.MAX_VALUE);
-
-      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
+//      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
 
 
       try {
-        DataIndexFileHandler DIF = new DataIndexFileHandler();
-        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime - 1, buyerid);
+//        DataIndexFileHandler DIF = new DataIndexFileHandler();
+//        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime - 1, buyerid);
+        buyerQUeue = queryOrderByBuyerByviloence(startTime, endTime-1, buyerid);
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -1209,21 +1216,21 @@ public class OrderSystemImpl implements OrderSystem {
 
 
 
-      Row queryStart = new Row();
-      queryStart.putKV("goodid", goodid);
-      queryStart.putKV("orderid", Long.MIN_VALUE);
+//      Row queryStart = new Row();
+//      queryStart.putKV("goodid", goodid);
+//      queryStart.putKV("orderid", Long.MIN_VALUE);
+//
+//      Row queryEnd = new Row();
+//      queryEnd.putKV("goodid", goodid);
+//      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
-      Row queryEnd = new Row();
-      queryEnd.putKV("goodid", goodid);
-      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
-
-      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+//      String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
       try {
-        DataIndexFileHandler DIF = new DataIndexFileHandler();
-        orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
-
+//        DataIndexFileHandler DIF = new DataIndexFileHandler();
+//        orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
+        orderDataSortedBySalerQueue = queryOrderBySalerViolence(goodid);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -1297,20 +1304,21 @@ public class OrderSystemImpl implements OrderSystem {
 
       System.out.println("***** query the sum of some keys in goodid : " + goodid + " key :" + key);
 
-      Row queryStart = new Row();
-      queryStart.putKV("goodid", goodid);
-      queryStart.putKV("orderid", Long.MIN_VALUE);
-      Row queryEnd = new Row();
-      queryEnd.putKV("goodid", goodid);
-      queryEnd.putKV("orderid", Long.MAX_VALUE);
+//      Row queryStart = new Row();
+//      queryStart.putKV("goodid", goodid);
+//      queryStart.putKV("orderid", Long.MIN_VALUE);
+//      Row queryEnd = new Row();
+//      queryEnd.putKV("goodid", goodid);
+//      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
 
-      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+//      String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
 
       try {
-        DataIndexFileHandler DIF = new DataIndexFileHandler();
-        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingByGoodOrderId, goodid);
+//        DataIndexFileHandler DIF = new DataIndexFileHandler();
+//        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingByGoodOrderId, goodid);
+        orderDataSortedByGoodQueue = queryOrderBySalerViolence(goodid);
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -1449,4 +1457,181 @@ public class OrderSystemImpl implements OrderSystem {
     }
     return kvMap;
   }
+
+  /**
+   * 暴力求解的方式 进行queryorder的查询 就是是获取那个orderid
+   * @param orderid
+   * @return
+   */
+  public  Row queryOrderByViolence(long orderid) throws FileNotFoundException {
+    //遍历每个文件
+    for (String file: UtilsDataStorge.order_files)
+    {
+
+      BufferedReader bfr = createReader(file);
+      try {
+        String line = bfr.readLine();
+        while (line != null) {
+          Row kvMap = createKVMapFromLine(line);
+          if (Math.abs(kvMap.getKV("orderid").valueAsLong() - orderid) < 0.001)
+            return kvMap;
+          line = bfr.readLine();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (TypeException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          if (bfr != null)
+                bfr.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 暴力求解方法 获取时间段内的用户消费
+   * @param startTime
+   * @param endTime
+   * @param buyerid
+   * @return
+   */
+  public PriorityQueue<Row> queryOrderByBuyerByviloence(long startTime, long endTime, String buyerid) throws FileNotFoundException {
+
+    //从大到小
+    Comparator<Row> OrderIsdn =  new Comparator<Row>(){
+      public int compare(Row o1, Row o2) {
+        // TODO Auto-generated method stub
+        long numbera = 0;
+        long numberb = 0;
+        try {
+          numbera = o1.getKV("createtime").valueAsLong();
+
+          numberb = o2.getKV("createtime").valueAsLong();
+        } catch (TypeException e) {
+          e.printStackTrace();
+        }if(numberb > numbera)
+        {
+          return 1;
+        }
+        else if(numberb < numbera)
+        {
+          return -1;
+        }
+        else
+        {
+          return 0;
+        }
+
+      }
+
+
+    };
+    PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
+
+
+    //遍历每个文件
+    for (String file: UtilsDataStorge.order_files)
+    {
+
+      BufferedReader bfr = createReader(file);
+      try {
+        String line = bfr.readLine();
+        while (line != null) {
+          Row kvMap = createKVMapFromLine(line);
+          if (kvMap.get("buyerid").valueAsString().equals(buyerid) && kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime)
+          {
+            buyerQue.offer(kvMap);
+//            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
+          }
+          line = bfr.readLine();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (TypeException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          if (bfr != null)
+            bfr.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+     return buyerQue;
+  }
+
+  /**
+   * 暴力求解
+   * @param goodid
+   * @return
+   * @throws FileNotFoundException
+   */
+  public PriorityQueue<Row> queryOrderBySalerViolence(String goodid) throws FileNotFoundException {
+    Comparator<Row> OrderIsdn =  new Comparator<Row>(){
+      public int compare(Row o1, Row o2) {
+        // TODO Auto-generated method stub
+        long numbera = 0;
+        long numberb = 0;
+        try {
+          numbera = o1.getKV("orderid").valueAsLong();
+
+          numberb = o2.getKV("orderid").valueAsLong();
+        } catch (TypeException e) {
+          e.printStackTrace();
+        }if(numberb > numbera)
+        {
+          return -1;
+        }
+        else if(numberb < numbera)
+        {
+          return 1;
+        }
+        else
+        {
+          return 0;
+        }
+
+      }
+
+
+    };
+    PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
+
+    //遍历所有的文件
+    for (String file : UtilsDataStorge.order_files) {
+      BufferedReader bfr = createReader(file);
+      try {
+        //int linecount =0;
+        String line = bfr.readLine();
+        while (line != null) {
+          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
+          //这个函数是由子类实现的
+          if (kvMap.get("goodid").valueAsString().equals(goodid))
+            goodQue.offer(kvMap);
+
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          if (bfr != null)
+              bfr.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return goodQue;
+  }
+
 }

@@ -5,10 +5,7 @@ import com.alibaba.middleware.race.OrderSystemImpl;
 
 import java.io.BufferedOutputStream;
 import java.io.FileWriter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,6 +35,7 @@ public class UtilsDataStorge {
     //存储买家的打开文件
     public static ConcurrentHashMap<String, FileWriter> buyerFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
 
-
+    //order files
+    public static Collection<String> order_files;
 
 }

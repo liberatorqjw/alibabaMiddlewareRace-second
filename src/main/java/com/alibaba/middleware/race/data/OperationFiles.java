@@ -48,6 +48,7 @@ public class OperationFiles {
             }
 
 
+            /*
             //order buyer
 //            for (String su1: suffix)
             for (String su2: suffix)
@@ -69,6 +70,7 @@ public class OperationFiles {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, suffixWriter);
             }
+            */
 
         }catch (Exception e)
         {
