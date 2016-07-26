@@ -841,8 +841,8 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(1000);
     sumOrderCache = new LRUCache<String, Object>(1000);
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(2);
-    service_order = Executors.newFixedThreadPool(2);
+//    service = Executors.newFixedThreadPool(2);
+//    service_order = Executors.newFixedThreadPool(2);
 
 //    service_ad = Executors.newSingleThreadScheduledExecutor();
 
@@ -1105,8 +1105,9 @@ public class OrderSystemImpl implements OrderSystem {
     }
     */
 //    new Thread(new WriteIntoFileThread(latch)).start();
-    latch.await(2,TimeUnit.SECONDS);
-    service.shutdown();
+//    latch.await(2,TimeUnit.SECONDS);
+    latch.await(59,TimeUnit.MINUTES);
+//    service.shutdown();
     //关闭文件流
 //    OperationFiles.closeFileWriter(1);
 //    service.shutdown();
@@ -1294,6 +1295,11 @@ public class OrderSystemImpl implements OrderSystem {
     {
       if (UtilsDataStorge.end)
         break;
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
 
 
@@ -1386,6 +1392,11 @@ public class OrderSystemImpl implements OrderSystem {
     {
       if (UtilsDataStorge.end)
         break;
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
 
     PriorityQueue<Row> orderDataSortedBySalerQueue = null;
@@ -1487,6 +1498,11 @@ public class OrderSystemImpl implements OrderSystem {
     {
       if (UtilsDataStorge.end)
         break;
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
 
     PriorityQueue<Row> orderDataSortedByGoodQueue = null;
