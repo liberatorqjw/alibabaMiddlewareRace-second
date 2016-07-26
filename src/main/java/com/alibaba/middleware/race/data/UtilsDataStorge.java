@@ -7,6 +7,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by qinjiawei on 16-7-18.
@@ -18,13 +19,13 @@ public class UtilsDataStorge {
     public static String storeFolder;
 
     //存储商品的打开文件
-    public static HashMap<String, BufferedOutputStream> goodFilesMap = new HashMap<String, BufferedOutputStream>();
-
-    //存储订单的打开文件
-    public static HashMap<String, BufferedOutputStream> orderFilesMap = new HashMap<String, BufferedOutputStream>();
-
-    //存储买家的打开文件
-    public static HashMap<String, BufferedOutputStream> buyerFilesMap = new HashMap<String, BufferedOutputStream>();
+//    public static HashMap<String, BufferedOutputStream> goodFilesMap = new HashMap<String, BufferedOutputStream>();
+//
+//    存储订单的打开文件
+//    public static HashMap<String, BufferedOutputStream> orderFilesMap = new HashMap<String, BufferedOutputStream>();
+//
+//    存储买家的打开文件
+//    public static HashMap<String, BufferedOutputStream> buyerFilesMap = new HashMap<String, BufferedOutputStream>();
 
     //存储商品的打开文件
     public static ConcurrentHashMap<String, FileWriter> goodFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
@@ -37,5 +38,9 @@ public class UtilsDataStorge {
 
     //order files
     public static Collection<String> order_files;
+
+//   存储队列
+    public static ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> orderFileWriterqueue = new ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>();
+
 
 }

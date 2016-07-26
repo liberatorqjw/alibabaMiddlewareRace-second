@@ -4,10 +4,11 @@ import com.alibaba.middleware.race.data.OperationFiles;
 import com.alibaba.middleware.race.data.UtilsDataStorge;
 import com.alibaba.middleware.race.utils.LRUCache;
 import com.alibaba.middleware.race.utils.Utils;
+import com.alibaba.middleware.race.utils.WriteIntoFileThread;
+
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -644,6 +645,7 @@ public class OrderSystemImpl implements OrderSystem {
           }
         }
         OperationFiles.closeFileWriter(flag);
+        System.out.println("buyer or good 的文件读完");
         latch.countDown();
 
       } catch (Exception e) {
@@ -652,6 +654,75 @@ public class OrderSystemImpl implements OrderSystem {
     }
   }
 
+
+  /**
+   * 多线程读取order的文件
+   */
+  private class ReadOrderFilesInQueue implements Runnable
+  {
+
+    private String file;
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> writeQueue;
+    private CountDownLatch latch;
+    private ConcurrentHashMap<String, FileWriter> outputWriter;
+
+    public ReadOrderFilesInQueue(String file, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> writeQueue, CountDownLatch latch) {
+      this.file = file;
+      this.writeQueue = writeQueue;
+      this.latch = latch;
+    }
+
+    public ReadOrderFilesInQueue(String file, CountDownLatch latch, ConcurrentHashMap<String, FileWriter> outputWriter) {
+      this.file = file;
+      this.latch = latch;
+      this.outputWriter = outputWriter;
+    }
+
+    @Override
+    public void run() {
+
+      System.out.println("开始读取order文件" + file);
+      BufferedReader bfr = null;
+      try {
+        bfr = createReader(file);
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
+      try {
+//        int linecount = 0;
+        String line = bfr.readLine();
+        while (line != null) {
+
+          Row row = createKVMapFromLineToSome(line, 1);// 返回的是一条数据的map
+
+          //order
+            try {
+              String suffixByorderid = Utils.getOrderSuffix(row.getKV("orderid").valueAsLong());
+              String suffixBygoodid = Utils.getGoodSuffix(row.getKV("goodid").valueAsString());
+              String suffixBybuyerid = Utils.getGoodSuffix(row.getKV("buyerid").valueAsString());
+
+//              writeQueue.get(OrderSystemImpl.orderIdexFile + suffixByorderid).offer(line + "\n");
+//              writeQueue.get(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixBybuyerid).offer(line + "\n");
+//              writeQueue.get(OrderSystemImpl.orderGoodOrderIdFile + suffixBygoodid).offer(line + "\n");
+
+              outputWriter.get(OrderSystemImpl.orderIdexFile + suffixByorderid).write(line + "\n");
+              outputWriter.get(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixBybuyerid).write(line + "\n");
+              outputWriter.get(OrderSystemImpl.orderGoodOrderIdFile + suffixBygoodid).write(line + "\n");
+
+
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          line = bfr.readLine();
+        }
+      }catch(Exception e)
+      {
+        e.printStackTrace();
+      }
+      System.out.println("****************结束一个文件的读************************");
+      latch.countDown();
+    }
+  }
   /**
    *  多线程构建树
    */
@@ -727,6 +798,8 @@ public class OrderSystemImpl implements OrderSystem {
   LRUCache<String, Object> sumOrderCache;
 //  LRUCache<String, Object>  testcache;
 
+  ExecutorService service;
+
   public OrderSystemImpl() {
     comparableKeysOrderingByOrderId = new ArrayList<String>();
     comparableKeysOrderingByBuyerCreateTimeOrderId = new ArrayList<String>();
@@ -757,6 +830,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(1000);
     sumOrderCache = new LRUCache<String, Object>(1000);
 //    testcache = new LRUCache<String, Object>(10000);
+    service = Executors.newFixedThreadPool(5);
 
   }
 
@@ -793,6 +867,7 @@ public class OrderSystemImpl implements OrderSystem {
     long end1 = System.currentTimeMillis();
     long end =0;
     System.out.println( "construct cost of time :" + (end1 - start) + "ms");
+
 
     // 用例
 
@@ -865,17 +940,17 @@ public class OrderSystemImpl implements OrderSystem {
 //
 //
 //
-//    goodid = "dd-8834-c6874b116c42";
-//    String attr = "amount";
-//    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-//    System.out.println(os.sumOrdersByGood(goodid, attr));
-//
-//    attr = "amount";
-//    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-//    KeyValue sum = os.sumOrdersByGood(goodid, attr);
-//    if (sum == null) {
-//      System.out.println("由于该字段是布尔类型，返回值是null");
-//    }
+    String goodid = "dd-8834-c6874b116c42";
+    String attr = "amount";
+    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+    System.out.println(os.sumOrdersByGood(goodid, attr));
+
+    attr = "amount";
+    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+    KeyValue sum = os.sumOrdersByGood(goodid, attr);
+    if (sum == null) {
+      System.out.println("由于该字段是布尔类型，返回值是null");
+    }
     /*
     attr = "foo";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
@@ -995,17 +1070,23 @@ public class OrderSystemImpl implements OrderSystem {
     //创建文件流
     OperationFiles.CreateFileWriter();
 
-    CountDownLatch latch = new CountDownLatch(2);
+    CountDownLatch latch = new CountDownLatch(2 + orderFiles.size());
 
     new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
     new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
 //    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
 //    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
-
-
+    for (String file : orderFiles)
+    {
+//      service.execute(new ReadOrderFilesInQueue(file, UtilsDataStorge.orderFileWriterqueue,latch));
+      service.execute(new ReadOrderFilesInQueue(file, latch, UtilsDataStorge.orderFileswriterMap));
+    }
+//    new Thread(new WriteIntoFileThread(latch)).start();
     latch.await();
-
+    //关闭文件流
+    OperationFiles.closeFileWriter(1);
+    service.shutdown();
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
@@ -1029,9 +1110,9 @@ public class OrderSystemImpl implements OrderSystem {
       //索引文件的后缀名称
       String suffix = Utils.getOrderSuffix(orderId);
       try {
-//        DataIndexFileHandler DIF = new DataIndexFileHandler();
-//        orderData = DIF.handleOrderLine(OrderSystemImpl.orderIdexFile + suffix, comparableKeysOrderingByOrderId, orderId);
-        orderData = queryOrderByViolence(orderId);
+        DataIndexFileHandler DIF = new DataIndexFileHandler();
+        orderData = DIF.handleOrderLine(OrderSystemImpl.orderIdexFile + suffix, comparableKeysOrderingByOrderId, orderId);
+//        orderData = queryOrderByViolence(orderId);
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -1136,13 +1217,13 @@ public class OrderSystemImpl implements OrderSystem {
 //      queryEnd.putKV("createtime", endTime - 1); // exclusive end
 //      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
-//      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
+      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
 
 
       try {
-//        DataIndexFileHandler DIF = new DataIndexFileHandler();
-//        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime - 1, buyerid);
-        buyerQUeue = queryOrderByBuyerByviloence(startTime, endTime-1, buyerid);
+        DataIndexFileHandler DIF = new DataIndexFileHandler();
+        buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixIndexFile, startTime, endTime - 1, buyerid);
+//        buyerQUeue = queryOrderByBuyerByviloence(startTime, endTime-1, buyerid);
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -1225,12 +1306,12 @@ public class OrderSystemImpl implements OrderSystem {
 //      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
 
-//      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+      String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
       try {
-//        DataIndexFileHandler DIF = new DataIndexFileHandler();
-//        orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
-        orderDataSortedBySalerQueue = queryOrderBySalerViolence(goodid);
+        DataIndexFileHandler DIF = new DataIndexFileHandler();
+        orderDataSortedBySalerQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingBySalerGoodOrderId, goodid);
+//        orderDataSortedBySalerQueue = queryOrderBySalerViolence(goodid);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -1312,13 +1393,13 @@ public class OrderSystemImpl implements OrderSystem {
 //      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
 
-//      String suffixIndexFile = Utils.getGoodSuffix(goodid);
+      String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
 
       try {
-//        DataIndexFileHandler DIF = new DataIndexFileHandler();
-//        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingByGoodOrderId, goodid);
-        orderDataSortedByGoodQueue = queryOrderBySalerViolence(goodid);
+        DataIndexFileHandler DIF = new DataIndexFileHandler();
+        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + suffixIndexFile, comparableKeysOrderingByGoodOrderId, goodid);
+//        orderDataSortedByGoodQueue = queryOrderBySalerViolence(goodid);
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -1633,5 +1714,7 @@ public class OrderSystemImpl implements OrderSystem {
     }
     return goodQue;
   }
+
+
 
 }

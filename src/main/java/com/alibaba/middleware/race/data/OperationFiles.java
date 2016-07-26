@@ -6,6 +6,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Liberatorqjw on 2016/7/19.
@@ -48,29 +49,35 @@ public class OperationFiles {
             }
 
 
-            /*
+
             //order buyer
 //            for (String su1: suffix)
             for (String su2: suffix)
             for (String su : suffix) {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, true);
+                ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, suffixWriter);
-
+                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, queue);
             }
             //order good
 //            for (String su1: suffix)
             for (String su2: suffix)
             for (String su : suffix) {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, true);
+                ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, suffixWriter);
+                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, queue);
             }
 
             //order index
             for (int i =0 ; i < 1000; i++) {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
+                ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
+
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, suffixWriter);
+                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, queue);
             }
-            */
+
 
         }catch (Exception e)
         {
