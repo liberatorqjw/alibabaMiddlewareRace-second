@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by qinjiawei on 16-7-18.
@@ -37,10 +38,16 @@ public class UtilsDataStorge {
     public static ConcurrentHashMap<String, FileWriter> buyerFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
 
     //order files
-    public static Collection<String> order_files;
+    public static ArrayList<String> order_files = new ArrayList<String>();
 
 //   存储队列
     public static ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> orderFileWriterqueue = new ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>();
 
+    public static AtomicInteger countFile = new AtomicInteger(0);
 
+    public static int countAllFiles;
+
+
+    //order构建结束的标志
+    public static boolean end = false;
 }

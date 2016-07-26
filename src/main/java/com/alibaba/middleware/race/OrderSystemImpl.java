@@ -646,6 +646,8 @@ public class OrderSystemImpl implements OrderSystem {
         }
         OperationFiles.closeFileWriter(flag);
         System.out.println("buyer or good 的文件读完");
+        if (flag == 1)
+          UtilsDataStorge.end = true;
         latch.countDown();
 
       } catch (Exception e) {
@@ -665,6 +667,7 @@ public class OrderSystemImpl implements OrderSystem {
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> writeQueue;
     private CountDownLatch latch;
     private ConcurrentHashMap<String, FileWriter> outputWriter;
+    private boolean flag;
 
     public ReadOrderFilesInQueue(String file, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> writeQueue, CountDownLatch latch) {
       this.file = file;
@@ -672,16 +675,20 @@ public class OrderSystemImpl implements OrderSystem {
       this.latch = latch;
     }
 
-    public ReadOrderFilesInQueue(String file, CountDownLatch latch, ConcurrentHashMap<String, FileWriter> outputWriter) {
+    public ReadOrderFilesInQueue(String file, CountDownLatch latch, ConcurrentHashMap<String, FileWriter> outputWriter, boolean flag) {
       this.file = file;
       this.latch = latch;
       this.outputWriter = outputWriter;
+      this.flag = flag;
     }
 
     @Override
     public void run() {
 
       System.out.println("开始读取order文件" + file);
+      UtilsDataStorge.countFile.incrementAndGet();
+      UtilsDataStorge.order_files.add(file);
+
       BufferedReader bfr = null;
       try {
         bfr = createReader(file);
@@ -719,7 +726,9 @@ public class OrderSystemImpl implements OrderSystem {
       {
         e.printStackTrace();
       }
-      System.out.println("****************结束一个文件的读************************");
+      System.out.println("****************结束一个文件的读************************" + file);
+
+      if (flag)
       latch.countDown();
     }
   }
@@ -799,7 +808,9 @@ public class OrderSystemImpl implements OrderSystem {
 //  LRUCache<String, Object>  testcache;
 
   ExecutorService service;
+  ExecutorService service_order;
 
+  ScheduledExecutorService service_ad;
   public OrderSystemImpl() {
     comparableKeysOrderingByOrderId = new ArrayList<String>();
     comparableKeysOrderingByBuyerCreateTimeOrderId = new ArrayList<String>();
@@ -830,7 +841,10 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(1000);
     sumOrderCache = new LRUCache<String, Object>(1000);
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(5);
+    service = Executors.newFixedThreadPool(2);
+    service_order = Executors.newFixedThreadPool(2);
+
+//    service_ad = Executors.newSingleThreadScheduledExecutor();
 
   }
 
@@ -1066,32 +1080,109 @@ public class OrderSystemImpl implements OrderSystem {
       break;
     }
 
-    UtilsDataStorge.order_files = orderFiles;
+    //记录所有的order文件路径
+//    UtilsDataStorge.order_files = orderFiles;
+
     //创建文件流
     OperationFiles.CreateFileWriter();
+
+    //记录总的文件数量
+    UtilsDataStorge.countAllFiles = orderFiles.size();
 
     CountDownLatch latch = new CountDownLatch(2 + orderFiles.size());
 
     new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
     new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
-//    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
+    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
 //    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
+   /*
     for (String file : orderFiles)
     {
 //      service.execute(new ReadOrderFilesInQueue(file, UtilsDataStorge.orderFileWriterqueue,latch));
-      service.execute(new ReadOrderFilesInQueue(file, latch, UtilsDataStorge.orderFileswriterMap));
+
+      service.execute(new ReadOrderFilesInQueue(file, latch, UtilsDataStorge.orderFileswriterMap, false));
     }
+    */
 //    new Thread(new WriteIntoFileThread(latch)).start();
-    latch.await();
-    //关闭文件流
-    OperationFiles.closeFileWriter(1);
+    latch.await(2,TimeUnit.SECONDS);
     service.shutdown();
+    //关闭文件流
+//    OperationFiles.closeFileWriter(1);
+//    service.shutdown();
   }
 
   public Result queryOrder(long orderId, Collection<String> keys) {
 
 
+    /*
+    //写个循环等待
+    while (true)
+    {
+
+      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles)
+      {
+        try {
+          Thread.sleep(1 * 1000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        break;
+      }
+      //继续构建order的操作
+      else {
+        try {
+          //首先开启order的文件流
+//        OperationFiles.CreateOrderWriter();
+          System.out.println("还剩未处理的文件数量 " +(UtilsDataStorge.countAllFiles -  UtilsDataStorge.order_files.size()));
+          //重新定义latch
+          CountDownLatch latch = new CountDownLatch(UtilsDataStorge.countAllFiles - UtilsDataStorge.order_files.size());
+
+          //把没有遍历的文件继续遍历一遍
+
+          for (String file : UtilsDataStorge.order_files) {
+            //没处理过的进行处理
+            if (!UtilsDataStorge.order_files.contains(file))
+            {
+              UtilsDataStorge.order_files.add(file);
+              service_order.execute(new ReadOrderFilesInQueue(file, latch, UtilsDataStorge.orderFileswriterMap, true));
+            }
+          }
+          //latch结束
+          try {
+            latch.await();
+
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          //service关闭
+          service_order.shutdown();
+        }finally {
+          //关闭文件
+          try {
+            OperationFiles.closeFileWriter(1);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+        break;
+        }
+
+    }
+
+    */
+
+    while (true)
+    {
+      if (UtilsDataStorge.end)
+        break;
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    System.out.println("******************最终构建完成***********************");
     Row orderData = null;
     //缓存的key
     String cacheKey = String.valueOf(orderId);
@@ -1196,6 +1287,16 @@ public class OrderSystemImpl implements OrderSystem {
   public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime,
       String buyerid) {
 
+
+
+    //写个循环等待
+    while (true)
+    {
+      if (UtilsDataStorge.end)
+        break;
+    }
+
+
     PriorityQueue<Row> buyerQUeue = null;
     List<Row> tmpQueue = new ArrayList<Row>();
 
@@ -1279,6 +1380,13 @@ public class OrderSystemImpl implements OrderSystem {
 
   public Iterator<Result> queryOrdersBySaler(String salerid, String goodid,
       Collection<String> keys) {
+
+    //写个循环等待
+    while (true)
+    {
+      if (UtilsDataStorge.end)
+        break;
+    }
 
     PriorityQueue<Row> orderDataSortedBySalerQueue = null;
     List<Row> tmpQueue = new ArrayList<Row>();
@@ -1373,6 +1481,13 @@ public class OrderSystemImpl implements OrderSystem {
   }
 
   public KeyValue sumOrdersByGood(String goodid, String key) {
+
+    //写个循环等待
+    while (true)
+    {
+      if (UtilsDataStorge.end)
+        break;
+    }
 
     PriorityQueue<Row> orderDataSortedByGoodQueue = null;
 

@@ -57,7 +57,7 @@ public class OperationFiles {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, true);
                 ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, suffixWriter);
-                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, queue);
+//                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, queue);
             }
             //order good
 //            for (String su1: suffix)
@@ -66,7 +66,7 @@ public class OperationFiles {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, true);
                 ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, suffixWriter);
-                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, queue);
+//                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, queue);
             }
 
             //order index
@@ -75,7 +75,59 @@ public class OperationFiles {
                 ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
 
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, suffixWriter);
-                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, queue);
+//                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, queue);
+            }
+
+
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 只是创建出order的数据
+     */
+    public static void CreateOrderWriter()
+    {
+        String[] suffix = {"a","b","c","d","e","f","g","h","i","j","k","l", "m", "n", "o", "p", "q",
+                "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8",
+                "9"};
+
+        String[] ordersuffix = {"10","11","12","13","14","15","16","17","18","19","0", "1", "2", "3", "4", "5", "6", "7", "8",
+                "9"};
+        //后缀
+        String sffix = ".txt";
+
+        System.out.println(suffix.length);
+        try {
+
+            //order buyer
+//            for (String su1: suffix)
+            for (String su2: suffix)
+                for (String su : suffix) {
+                    FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, true);
+                    ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
+                    UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, suffixWriter);
+//                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + su2+su + sffix, queue);
+                }
+            //order good
+//            for (String su1: suffix)
+            for (String su2: suffix)
+                for (String su : suffix) {
+                    FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, true);
+                    ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
+                    UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, suffixWriter);
+//                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderGoodOrderIdFile + su2+su + sffix, queue);
+                }
+
+            //order index
+            for (int i =0 ; i < 1000; i++) {
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolder + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
+                ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
+
+                UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, suffixWriter);
+//                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, queue);
             }
 
 
