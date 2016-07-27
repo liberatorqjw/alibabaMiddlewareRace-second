@@ -596,7 +596,7 @@ public class OrderSystemImpl implements OrderSystem {
                   String content = "goodid:" + row.getKV("goodid").valueAsString()+ "\t" + "address:"+ address.trim() + "\n";
 
                   int index = Utils.FNVHash1(goodid);
-                  System.out.println("good的文件索引: " + index);
+//                  System.out.println("good的文件索引: " + index);
                   outputWriters.get(index).write(line + "\n");
 
                 } catch (Exception e) {
@@ -612,7 +612,7 @@ public class OrderSystemImpl implements OrderSystem {
 //                  String suffix = Utils.getGoodSuffix(buyerid);
 //                  String content = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t"  + "address:" + address.trim() + "\n";
                   int index = Utils.FNVHash1(buyerid);
-                  System.out.println("buyer的文件索引: " + index);
+//                  System.out.println("buyer的文件索引: " + index);
                   outputWriters.get(index).write(line+ "\n");
                 } catch (Exception e) {
                   e.printStackTrace();
@@ -838,7 +838,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(10000);
     sumOrderCache = new LRUCache<String, Object>(10000);
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(5);
+    service = Executors.newFixedThreadPool(4);
 
   }
 
@@ -1113,8 +1113,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     //wait the limit time
 //    new Thread(new WriteIntoFileThread(latch)).start();
-//    latch.await(2,TimeUnit.SECONDS);
-     latch.await(59,TimeUnit.MINUTES);
+    latch.await(2,TimeUnit.SECONDS);
+//     latch.await(59,TimeUnit.MINUTES);
 
      System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
