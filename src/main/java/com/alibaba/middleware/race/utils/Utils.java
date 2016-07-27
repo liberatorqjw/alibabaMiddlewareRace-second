@@ -29,7 +29,7 @@ public class Utils {
      */
     public static long getOrderSuffix(long orderid)
     {
-        long suffix = orderid % 3000;
+        long suffix = orderid % 2500;
         return suffix;
 
     }
@@ -71,7 +71,7 @@ public class Utils {
         hash += hash << 3;
         hash ^= hash >> 17;
         hash += hash << 5;
-        return Math.abs(hash % 3000);
+        return Math.abs(hash % 2500);
     }
 
     public static void  main(String[] args)
