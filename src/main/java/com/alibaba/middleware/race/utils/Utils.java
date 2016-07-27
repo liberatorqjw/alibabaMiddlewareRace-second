@@ -27,10 +27,10 @@ public class Utils {
      * @param orderid
      * @return
      */
-    public static String getOrderSuffix(long orderid)
+    public static long getOrderSuffix(long orderid)
     {
-        long suffix = orderid % 1000;
-        return suffix + ".txt";
+        long suffix = orderid % 4096;
+        return suffix;
 
     }
 
@@ -52,6 +52,32 @@ public class Utils {
             System.out.println("*******key :" + entry.getKey() + "**value :" + value.size());
             System.out.println("#####################################");
         }
+
+    }
+
+    /**
+     * 改进的FNV1算法
+     * @param data
+     * @return
+     */
+    public static int FNVHash1(String data)
+    {
+        final int p = 16777619;
+        int hash = (int)2166136261L;
+        for(int i=0;i<data.length();i++)
+            hash = (hash ^ data.charAt(i)) * p;
+        hash += hash << 13;
+        hash ^= hash >> 7;
+        hash += hash << 3;
+        hash ^= hash >> 17;
+        hash += hash << 5;
+        return Math.abs(hash % 4096);
+    }
+
+    public static void  main(String[] args)
+    {
+        int hashcode = FNVHash1("al-aca4-93f110a11f1b");
+        System.out.println(hashcode);
 
     }
 }

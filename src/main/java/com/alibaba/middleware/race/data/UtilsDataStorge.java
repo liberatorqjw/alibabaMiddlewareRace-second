@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.data;
 
 import com.alibaba.middleware.race.OrderSystem;
 import com.alibaba.middleware.race.OrderSystemImpl;
+import org.omg.PortableInterceptor.INACTIVE;
 
 import java.io.BufferedOutputStream;
 import java.io.FileWriter;
@@ -32,13 +33,17 @@ public class UtilsDataStorge {
 //    public static HashMap<String, BufferedOutputStream> buyerFilesMap = new HashMap<String, BufferedOutputStream>();
 
     //存储商品的打开文件
-    public static ConcurrentHashMap<String, FileWriter> goodFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
+    public static ConcurrentHashMap<Integer, FileWriter> goodFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
 
     //存储订单的打开文件
-    public static ConcurrentHashMap<String, FileWriter> orderFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
+    public static ConcurrentHashMap<Integer, FileWriter> orderFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
 
     //存储买家的打开文件
-    public static ConcurrentHashMap<String, FileWriter> buyerFileswriterMap = new ConcurrentHashMap<String, FileWriter>();
+    public static ConcurrentHashMap<Integer, FileWriter> buyerFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+
+    public static ConcurrentHashMap<Integer, FileWriter> orderbuyerFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+
+    public static ConcurrentHashMap<Integer, FileWriter> ordergoodFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
 
     //order files
     public static ArrayList<String> order_files = new ArrayList<String>();

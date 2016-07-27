@@ -64,6 +64,28 @@ public class OperationFiles {
 
         System.out.println(suffix.length);
         try {
+
+            for (int i = 0; i<4096; i++)
+            {
+                FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolderOrder + "buyer/" + OrderSystemImpl.buyerIndexFile + i + sffix , true);
+                UtilsDataStorge.buyerFileswriterMap.put(i, suffixWriter);
+
+                FileWriter suffixgood = new FileWriter(UtilsDataStorge.storeFolderOrder + "good/" + OrderSystemImpl.goodIndexFile + i+ sffix, true);
+                UtilsDataStorge.goodFileswriterMap.put(i, suffixgood);
+
+                FileWriter suffixorderBuyer = new FileWriter(UtilsDataStorge.storeFolderOrderBybuyer + "order/" + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + i+ sffix, true);
+                UtilsDataStorge.orderbuyerFileswriterMap.put(i, suffixorderBuyer);
+
+                FileWriter suffixordergood = new FileWriter(UtilsDataStorge.storeFolderOrderByGood + "order/" + OrderSystemImpl.orderGoodOrderIdFile + i + sffix, true);
+                UtilsDataStorge.ordergoodFileswriterMap.put(i, suffixordergood);
+
+                FileWriter suffixorder = new FileWriter(UtilsDataStorge.storeFolderOrder + "order/" + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
+                UtilsDataStorge.orderFileswriterMap.put(i, suffixorder);
+
+            }
+
+
+            /*
             //buyer
 //            for (String su1: suffix)
 
@@ -111,6 +133,8 @@ public class OperationFiles {
                 UtilsDataStorge.orderFileswriterMap.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, suffixWriter);
 //                UtilsDataStorge.orderFileWriterqueue.put(OrderSystemImpl.orderIdexFile + String.valueOf(i)+ sffix, queue);
             }
+            */
+
 
 
         }catch (Exception e)
@@ -140,6 +164,13 @@ public class OperationFiles {
             Collection<FileWriter> orderfilesOut = UtilsDataStorge.orderFileswriterMap.values();
             for (FileWriter bout: orderfilesOut)
                 bout.close();
+            orderfilesOut = UtilsDataStorge.orderbuyerFileswriterMap.values();
+            for (FileWriter bout: orderfilesOut)
+                bout.close();
+            orderfilesOut = UtilsDataStorge.ordergoodFileswriterMap.values();
+            for (FileWriter bout: orderfilesOut)
+                bout.close();
+
         }
         //buyer
         else {
