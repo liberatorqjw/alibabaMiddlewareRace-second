@@ -838,7 +838,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(10000);
     sumOrderCache = new LRUCache<String, Object>(10000);
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(4);
+    service = Executors.newFixedThreadPool(5);
 
   }
 
