@@ -17,7 +17,10 @@ public class UtilsDataStorge {
 
 
     //存储索引数据的磁盘路径
-    public static String storeFolder;
+    public static String storeFolderOrder;
+    public static String storeFolderOrderBybuyer;
+    public static String storeFolderOrderByGood;
+
 
     //存储商品的打开文件
 //    public static HashMap<String, BufferedOutputStream> goodFilesMap = new HashMap<String, BufferedOutputStream>();
@@ -43,11 +46,17 @@ public class UtilsDataStorge {
 //   存储队列
     public static ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> orderFileWriterqueue = new ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>();
 
+    //已经处理完的order文件总数量
     public static AtomicInteger countFile = new AtomicInteger(0);
 
+    //order的文件总数量
     public static int countAllFiles;
 
 
     //order构建结束的标志
     public static boolean end = false;
+
+    //order的已经处理完的条数
+    public static AtomicInteger orderFileLines = new AtomicInteger(0);
+
 }

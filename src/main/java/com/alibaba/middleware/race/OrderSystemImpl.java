@@ -250,7 +250,7 @@ public class OrderSystemImpl implements OrderSystem {
     public TreeMap<ComparableKeys, Row> handle(String file, List<String> comparekeys) throws IOException {
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader( file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -282,7 +282,7 @@ public class OrderSystemImpl implements OrderSystem {
     public TreeMap<ComparableKeys, Row> handleOrder(String file, List<String> comparekeys, long orderid) throws IOException, TypeException {
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader( file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -305,8 +305,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     public Row  handleOrderLine(String file, List<String> comparekeys, long orderid) throws FileNotFoundException, Exception {
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
-      System.out.println(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrder +"order/" + file);
+      System.out.println(UtilsDataStorge.storeFolderOrder +"order/" + file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -339,7 +339,7 @@ public class OrderSystemImpl implements OrderSystem {
     public TreeMap<ComparableKeys, Row> handleBuyer(String file, List<String> comparekeys, String buyerid) throws IOException {
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader( file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -364,7 +364,7 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrder + "buyer/"+file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -419,7 +419,7 @@ public class OrderSystemImpl implements OrderSystem {
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderBybuyer+"order/" + file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -457,7 +457,7 @@ public class OrderSystemImpl implements OrderSystem {
     public TreeMap<ComparableKeys, Row> handleGood(String file, List<String> comparekeys, String goodid) throws IOException {
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader(file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -480,7 +480,7 @@ public class OrderSystemImpl implements OrderSystem {
     public Row handleGoodLine(String file, List<String> comparekeys, String goodid) throws IOException {
 
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrder+"good/" + file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -533,7 +533,7 @@ public class OrderSystemImpl implements OrderSystem {
       };
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
       //read the index file 读取指定的索引文件
-      BufferedReader bfr = createReader(UtilsDataStorge.storeFolder + file);
+      BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderByGood+"order/" + file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -686,7 +686,7 @@ public class OrderSystemImpl implements OrderSystem {
     public void run() {
 
       System.out.println("开始读取order文件" + file);
-      UtilsDataStorge.countFile.incrementAndGet();
+
       UtilsDataStorge.order_files.add(file);
 
       BufferedReader bfr = null;
@@ -699,6 +699,9 @@ public class OrderSystemImpl implements OrderSystem {
 //        int linecount = 0;
         String line = bfr.readLine();
         while (line != null) {
+
+          //记录处理过的order文件条数
+          UtilsDataStorge.orderFileLines.incrementAndGet();
 
           Row row = createKVMapFromLineToSome(line, 1);// 返回的是一条数据的map
 
@@ -728,8 +731,12 @@ public class OrderSystemImpl implements OrderSystem {
       }
       System.out.println("****************结束一个文件的读************************" + file);
 
-      if (flag)
-      latch.countDown();
+      if (flag) {
+        System.out.println("latch down");
+        latch.countDown();
+      }
+
+      UtilsDataStorge.countFile.incrementAndGet();
     }
   }
   /**
@@ -808,9 +815,7 @@ public class OrderSystemImpl implements OrderSystem {
 //  LRUCache<String, Object>  testcache;
 
   ExecutorService service;
-  ExecutorService service_order;
 
-  ScheduledExecutorService service_ad;
   public OrderSystemImpl() {
     comparableKeysOrderingByOrderId = new ArrayList<String>();
     comparableKeysOrderingByBuyerCreateTimeOrderId = new ArrayList<String>();
@@ -841,10 +846,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(1000);
     sumOrderCache = new LRUCache<String, Object>(1000);
 //    testcache = new LRUCache<String, Object>(10000);
-//    service = Executors.newFixedThreadPool(2);
-//    service_order = Executors.newFixedThreadPool(2);
-
-//    service_ad = Executors.newSingleThreadScheduledExecutor();
+    service = Executors.newFixedThreadPool(4);
 
   }
 
@@ -870,8 +872,12 @@ public class OrderSystemImpl implements OrderSystem {
     goodFiles.add(dirpath + "good.1.1");
     goodFiles.add(dirpath + "good.2.2");
 
-    storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/indexgood_buyer/");
-    UtilsDataStorge.storeFolder = "/media/qinjiawei/000C8D1A0003D585/prerun_data/indexgood_buyer/";
+    storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/disk1/");
+    storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/disk2/");
+    storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/disk3/");
+
+
+//    UtilsDataStorge.storeFolder = "/media/qinjiawei/000C8D1A0003D585/prerun_data/indexgood_buyer/";
     OrderSystem os = new OrderSystemImpl();
 
     long start = System.currentTimeMillis();
@@ -880,13 +886,13 @@ public class OrderSystemImpl implements OrderSystem {
 
     long end1 = System.currentTimeMillis();
     long end =0;
-    System.out.println( "construct cost of time :" + (end1 - start) + "ms");
+//    System.out.println( "construct cost of time :" + (end1 - start) + "ms");
 
 
     // 用例
 
 
-    start = System.currentTimeMillis();
+//    start = System.currentTimeMillis();
     long orderid = 589555952;
     System.out.println("\n查询订单号为" + orderid + "的订单");
     System.out.println(os.queryOrder(orderid, null));
@@ -1074,11 +1080,20 @@ public class OrderSystemImpl implements OrderSystem {
       Collection<String> storeFolders) throws IOException, InterruptedException {
 
     //选择存储索引的磁盘, 选择第一个
-    for (String store : storeFolders)
-    {
-      UtilsDataStorge.storeFolder = store;
-      break;
+    int count =0;
+    for (String storge: storeFolders) {
+
+      if (count == 0)
+      UtilsDataStorge.storeFolderOrder = storge;
+      else if (count == 1)
+      UtilsDataStorge.storeFolderOrderBybuyer = storge;
+      else {
+        UtilsDataStorge.storeFolderOrderByGood = storge;
+        break;
+      }
+      count++;
     }
+
 
     //记录所有的order文件路径
 //    UtilsDataStorge.order_files = orderFiles;
@@ -1088,25 +1103,27 @@ public class OrderSystemImpl implements OrderSystem {
 
     //记录总的文件数量
     UtilsDataStorge.countAllFiles = orderFiles.size();
+    System.out.println("总的order文件数量" + orderFiles.size());
 
     CountDownLatch latch = new CountDownLatch(2 + orderFiles.size());
 
     new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
     new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
-    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
+//    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
 //    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
-   /*
+
+
     for (String file : orderFiles)
     {
-//      service.execute(new ReadOrderFilesInQueue(file, UtilsDataStorge.orderFileWriterqueue,latch));
-
       service.execute(new ReadOrderFilesInQueue(file, latch, UtilsDataStorge.orderFileswriterMap, false));
     }
-    */
+
 //    new Thread(new WriteIntoFileThread(latch)).start();
 //    latch.await(2,TimeUnit.SECONDS);
-    latch.await(59,TimeUnit.MINUTES);
+     latch.await(59,TimeUnit.MINUTES);
+     System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
+     System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
 //    service.shutdown();
     //关闭文件流
 //    OperationFiles.closeFileWriter(1);
@@ -1116,63 +1133,29 @@ public class OrderSystemImpl implements OrderSystem {
   public Result queryOrder(long orderId, Collection<String> keys) {
 
 
-    /*
     //写个循环等待
     while (true)
     {
-
-      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles)
-      {
+      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
         try {
-          Thread.sleep(1 * 1000);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+          service.shutdown();
+          OperationFiles.closeFileWriter(1);
+          System.out.println("queryOrder#############################order 文件关闭");
+          System.out.println("在queryOrder中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
+        } catch (IOException e) {
+          System.out.println("文件已经关闭了");
         }
         break;
       }
-      //继续构建order的操作
-      else {
         try {
-          //首先开启order的文件流
-//        OperationFiles.CreateOrderWriter();
-          System.out.println("还剩未处理的文件数量 " +(UtilsDataStorge.countAllFiles -  UtilsDataStorge.order_files.size()));
-          //重新定义latch
-          CountDownLatch latch = new CountDownLatch(UtilsDataStorge.countAllFiles - UtilsDataStorge.order_files.size());
-
-          //把没有遍历的文件继续遍历一遍
-
-          for (String file : UtilsDataStorge.order_files) {
-            //没处理过的进行处理
-            if (!UtilsDataStorge.order_files.contains(file))
-            {
-              UtilsDataStorge.order_files.add(file);
-              service_order.execute(new ReadOrderFilesInQueue(file, latch, UtilsDataStorge.orderFileswriterMap, true));
-            }
-          }
-          //latch结束
-          try {
-            latch.await();
-
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-          //service关闭
-          service_order.shutdown();
-        }finally {
-          //关闭文件
-          try {
-            OperationFiles.closeFileWriter(1);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-        break;
-        }
-
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
 
-    */
 
+   /*
     while (true)
     {
       if (UtilsDataStorge.end)
@@ -1183,6 +1166,8 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
     }
+    */
+
     System.out.println("******************最终构建完成***********************");
     Row orderData = null;
     //缓存的key
@@ -1293,8 +1278,18 @@ public class OrderSystemImpl implements OrderSystem {
     //写个循环等待
     while (true)
     {
-      if (UtilsDataStorge.end)
+      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
+        try {
+          service.shutdown();
+          OperationFiles.closeFileWriter(1);
+          System.out.println("###################################order 文件关闭");
+          System.out.println("在queryOrdersByBuyer中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
+
+        } catch (IOException e) {
+          System.out.println("文件已经关闭了");
+        }
         break;
+      }
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -1390,8 +1385,18 @@ public class OrderSystemImpl implements OrderSystem {
     //写个循环等待
     while (true)
     {
-      if (UtilsDataStorge.end)
+      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
+        try {
+          service.shutdown();
+          OperationFiles.closeFileWriter(1);
+          System.out.println("###################################order 文件关闭");
+          System.out.println("在queryOrdersBySaler中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
+
+        } catch (IOException e) {
+          System.out.println("文件已经关闭了");
+        }
         break;
+      }
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -1496,8 +1501,17 @@ public class OrderSystemImpl implements OrderSystem {
     //写个循环等待
     while (true)
     {
-      if (UtilsDataStorge.end)
+      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
+        try {
+          service.shutdown();
+          OperationFiles.closeFileWriter(1);
+          System.out.println("###################################order 文件关闭");
+          System.out.println("在sumOrdersByGood中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
+        } catch (IOException e) {
+          System.out.println("文件已经关闭了");
+        }
         break;
+      }
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
