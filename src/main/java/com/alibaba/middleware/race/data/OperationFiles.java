@@ -228,13 +228,21 @@ public class OperationFiles {
      */
     public static String ReadLineByRandomAccess(String filepath, long offset)
     {
+        BufferedRandomAccessFile bfr = null;
         try {
-            BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(filepath, "r");
+             bfr = new BufferedRandomAccessFile(filepath, "r");
             bfr.seek(offset);
             return new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
 
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            if (bfr != null)
+                try {
+                    bfr.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
       return null;
     }

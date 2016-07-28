@@ -1180,8 +1180,8 @@ public class OrderSystemImpl implements OrderSystem {
        try {
          service.shutdown();
          OperationFiles.closeFileWriter(1);
-         System.out.println("queryOrder#############################order 文件关闭");
-         System.out.println("在queryOrder中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
+         System.out.println("construct#############################order 文件关闭");
+         System.out.println("在construct中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
        } catch (IOException e) {
          System.out.println("文件已经关闭了");
        }
@@ -1217,7 +1217,6 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
 
-    System.out.println("******************最终构建完成***********************");
     Row orderData = null;
     //缓存的key
     String cacheKey = String.valueOf(orderId);
@@ -1239,7 +1238,7 @@ public class OrderSystemImpl implements OrderSystem {
       int indexSuffix = Utils.FNVHash1(String.valueOf(orderId));
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
-        System.out.println("查询的文件:" + OrderSystemImpl.orderIdexFile + indexSuffix + ".txt");
+//        System.out.println("查询的文件:" + OrderSystemImpl.orderIdexFile + indexSuffix + ".txt");
         orderData = DIF.handleOrderLine(OrderSystemImpl.orderIdexFile + indexSuffix + ".txt", comparableKeysOrderingByOrderId, orderId);
 //        orderData = queryOrderByViolence(orderId);
 
