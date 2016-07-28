@@ -311,6 +311,7 @@ public class OrderSystemImpl implements OrderSystem {
       try {
         //int linecount =0;
         String line = bfr.readLine();
+        /*
         while (line != null) {
 //          System.out.println("本行数据 ：" + line);
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
@@ -318,6 +319,27 @@ public class OrderSystemImpl implements OrderSystem {
 
           if (Math.abs(kvMap.get("orderid").valueAsLong() - orderid) < 0.0001)
           {
+            //此时读取到的数索引文件
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            return autalData;
+          }
+
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+        */
+        while (line != null) {
+//          System.out.println("本行数据 ：" + line);
+          // 返回的是一条数据的map
+          //这个函数是由子类实现的
+
+          if (line.indexOf("orderid:" + String.valueOf(orderid)) != -1)
+          {
+            Row kvMap = createKVMapFromLine(line);
             //此时读取到的数索引文件
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
             long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
@@ -377,10 +399,27 @@ public class OrderSystemImpl implements OrderSystem {
       try {
         //int linecount =0;
         String line = bfr.readLine();
+        /*
         while (line != null) {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
           if (kvMap.get("buyerid").valueAsString().equals(buyerid)) {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            return autalData;
+          }
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+        */
+        while (line != null) {
+
+          //这个函数是由子类实现的
+          if (line.indexOf("buyerid:"+buyerid) != -1) {
+            Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
             long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
             Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
@@ -437,15 +476,18 @@ public class OrderSystemImpl implements OrderSystem {
         //int linecount =0;
         String line = bfr.readLine();
         while (line != null) {
-          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
+//          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
-          if (kvMap.get("buyerid").valueAsString().equals(buyerid) && kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime)
+          if (line.indexOf("buyerid:"+ buyerid) != -1)
           {
-            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
-            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
-            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+            Row kvMap = createKVMapFromLine(line);
+            if (kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime) {
+              String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+              long offset = Long.valueOf(kvMap.getKV("address").valueAsString().split(",")[1]);
+              Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
-            buyerQue.add(autalData);
+              buyerQue.add(autalData);
+            }
 //            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
           }
 
@@ -501,10 +543,27 @@ public class OrderSystemImpl implements OrderSystem {
       try {
         //int linecount =0;
         String line = bfr.readLine();
+        /*
         while (line != null) {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
           if (kvMap.get("goodid").valueAsString().equals(goodid)) {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            return autalData;
+          }
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+        */
+        while (line != null) {
+
+          //这个函数是由子类实现的
+          if (line.indexOf("goodid:"+ goodid) != -1) {
+            Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
             long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
             Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
@@ -558,11 +617,30 @@ public class OrderSystemImpl implements OrderSystem {
       try {
         //int linecount =0;
         String line = bfr.readLine();
+        /*
         while (line != null) {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
           if (kvMap.get("goodid").valueAsString().equals(goodid))
           {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            goodQue.add(autalData);
+          }
+
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+        */
+        while (line != null) {
+//          //这个函数是由子类实现的
+
+          if (line.indexOf("goodid:" + goodid) != -1)
+          {
+            Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
             long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
             Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
@@ -1177,8 +1255,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     //wait the limit time
 //    new Thread(new WriteIntoFileThread(latch)).start();
-//    latch.await(2,TimeUnit.SECONDS);
-     latch.await(59,TimeUnit.MINUTES);
+    latch.await(2,TimeUnit.SECONDS);
+//     latch.await(59,TimeUnit.MINUTES);
 
      System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
