@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.data;
 
 import com.alibaba.middleware.race.OrderSystemImpl;
+import com.alibaba.middleware.race.utils.BufferedRandomAccessFile;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -217,6 +218,25 @@ public class OperationFiles {
 
         }
 
+    }
+
+    /**
+     * 利用buffer randomAccesssfile读取指定的一一条数据
+     * @param filepath
+     * @param offset
+     * @return
+     */
+    public static String ReadLineByRandomAccess(String filepath, long offset)
+    {
+        try {
+            BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(filepath, "r");
+            bfr.seek(offset);
+            return new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+      return null;
     }
 
 }

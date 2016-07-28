@@ -2,6 +2,7 @@ package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.data.OperationFiles;
 import com.alibaba.middleware.race.data.UtilsDataStorge;
+import com.alibaba.middleware.race.utils.BufferedRandomAccessFile;
 import com.alibaba.middleware.race.utils.LRUCache;
 import com.alibaba.middleware.race.utils.Utils;
 import com.alibaba.middleware.race.utils.WriteIntoFileThread;
@@ -311,11 +312,19 @@ public class OrderSystemImpl implements OrderSystem {
         //int linecount =0;
         String line = bfr.readLine();
         while (line != null) {
+//          System.out.println("本行数据 ：" + line);
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
 
           if (Math.abs(kvMap.get("orderid").valueAsLong() - orderid) < 0.0001)
-            return kvMap;
+          {
+            //此时读取到的数索引文件
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            return autalData;
+          }
 
           //读取下一行
           line = bfr.readLine();
@@ -371,9 +380,13 @@ public class OrderSystemImpl implements OrderSystem {
         while (line != null) {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
-          if (kvMap.get("buyerid").valueAsString().equals(buyerid))
-            return kvMap;
+          if (kvMap.get("buyerid").valueAsString().equals(buyerid)) {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
+            return autalData;
+          }
           //读取下一行
           line = bfr.readLine();
           //linecount +=1;
@@ -428,7 +441,11 @@ public class OrderSystemImpl implements OrderSystem {
           //这个函数是由子类实现的
           if (kvMap.get("buyerid").valueAsString().equals(buyerid) && kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime)
           {
-            buyerQue.add(kvMap);
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            buyerQue.add(autalData);
 //            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
           }
 
@@ -487,9 +504,13 @@ public class OrderSystemImpl implements OrderSystem {
         while (line != null) {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
-          if (kvMap.get("goodid").valueAsString().equals(goodid))
-            return kvMap;
+          if (kvMap.get("goodid").valueAsString().equals(goodid)) {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
+            return autalData;
+          }
           //读取下一行
           line = bfr.readLine();
           //linecount +=1;
@@ -541,7 +562,13 @@ public class OrderSystemImpl implements OrderSystem {
           Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
           //这个函数是由子类实现的
           if (kvMap.get("goodid").valueAsString().equals(goodid))
-            goodQue.add(kvMap);
+          {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            goodQue.add(autalData);
+          }
 
           //读取下一行
           line = bfr.readLine();
@@ -578,14 +605,21 @@ public class OrderSystemImpl implements OrderSystem {
     public void run() {
       try {
         for (String file : files) {
-          BufferedReader bfr = createReader(file);
+          //正常的buffer读取
+//          BufferedReader bfr = createReader(file);
+          //利用randomaccessfile读取
+          BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r");
           try {
-            int linecount = 0;
+
+            long offset = 0;
+//            String line = bfr.readLine();
+//           String line =  new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
             String line = bfr.readLine();
             while (line != null) {
 
-              Row row = createKVMapFromLineToSome(line, flag);// 返回的是一条数据的map
-              String address = file.trim() + "," + String.valueOf(linecount);
+              Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), flag);// 返回的是一条数据的map
+
+              String address = file.trim() + "," + String.valueOf(offset);
               //goodfiles
               if (flag == 0)
               {
@@ -593,11 +627,12 @@ public class OrderSystemImpl implements OrderSystem {
                   //按照goodid的最后一位形成索引文件的命名
                   String goodid = row.getKV("goodid").valueAsString();
 //                  String suffix = Utils.getGoodSuffix(goodid);
-                  String content = "goodid:" + row.getKV("goodid").valueAsString()+ "\t" + "address:"+ address.trim() + "\n";
+                  String content = "goodid:" + row.getKV("goodid").valueAsString()+ "\t" + "address:"+ address.trim();
 
                   int index = Utils.FNVHash1(goodid);
 //                  System.out.println("good的文件索引: " + index);
-                  outputWriters.get(index).write(line + "\n");
+                  //在索引文件中创建索引记录
+                  outputWriters.get(index).write(content + "\n");
 
                 } catch (Exception e) {
                   e.printStackTrace();
@@ -610,18 +645,20 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
                   String buyerid =  row.getKV("buyerid").valueAsString();
 //                  String suffix = Utils.getGoodSuffix(buyerid);
-//                  String content = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t"  + "address:" + address.trim() + "\n";
+                  String content = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t"  + "address:" + address.trim() ;
                   int index = Utils.FNVHash1(buyerid);
 //                  System.out.println("buyer的文件索引: " + index);
-                  outputWriters.get(index).write(line+ "\n");
+                  outputWriters.get(index).write(content+ "\n");
                 } catch (Exception e) {
                   e.printStackTrace();
                 }
               }
 
+              offset +=line.length() +1;
+
               //读取下一行
               line = bfr.readLine();
-              linecount += 1;
+
             }
           } finally {
             bfr.close();
@@ -677,21 +714,34 @@ public class OrderSystemImpl implements OrderSystem {
 
       UtilsDataStorge.order_files.add(file);
 
-      BufferedReader bfr = null;
+//      BufferedReader bfr = null;
+//      try {
+//        bfr = createReader(file);
+//      } catch (FileNotFoundException e) {
+//        e.printStackTrace();
+//      }
+      BufferedRandomAccessFile bfr = null;
       try {
-        bfr = createReader(file);
-      } catch (FileNotFoundException e) {
+        bfr = new BufferedRandomAccessFile(file, "r");
+      } catch (IOException e) {
         e.printStackTrace();
       }
       try {
 //        int linecount = 0;
+//        String line = bfr.readLine();
+//        String line = new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
+
         String line = bfr.readLine();
+        String address = null;
+        long offset =0;
+
         while (line != null) {
 
           //记录处理过的order文件条数
           UtilsDataStorge.orderFileLines.incrementAndGet();
 
-          Row row = createKVMapFromLineToSome(line, 1);// 返回的是一条数据的map
+          Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), 1);// 返回的是一条数据的map
+          address = file.trim() + "," + String.valueOf(offset);
 
           //order
             try {
@@ -706,15 +756,21 @@ public class OrderSystemImpl implements OrderSystem {
 //              writeQueue.get(OrderSystemImpl.orderIdexFile + suffixByorderid).offer(line + "\n");
 //              writeQueue.get(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixBybuyerid).offer(line + "\n");
 //              writeQueue.get(OrderSystemImpl.orderGoodOrderIdFile + suffixBygoodid).offer(line + "\n");
+              String contentOrder = "orderid:" + row.getKV("orderid").valueAsString() + "\t"  + "address:" + address.trim() ;
+              String contentOrderBuyer = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t" +"createtime:" + row.getKV("createtime").valueAsString() + "\t" + "address:" + address.trim();
+              String contentOrderGood = "goodid:" + row.getKV("goodid").valueAsString() + "\t"  + "address:" + address.trim();
 
-              outputWriter.get(indexorder).write(line + "\n");
-              outputBuyerWriter.get(indexOrderBuyer).write(line + "\n");
-              outputGoodWriter.get(indexOrderGood).write(line + "\n");
+              outputWriter.get(indexorder).write(contentOrder + "\n");
+              outputBuyerWriter.get(indexOrderBuyer).write(contentOrderBuyer + "\n");
+              outputGoodWriter.get(indexOrderGood).write(contentOrderGood + "\n");
 
 
             } catch (Exception e) {
               e.printStackTrace();
             }
+          //下一条数据的偏移量
+          offset += line.length() +1;
+
           line = bfr.readLine();
         }
       }catch(Exception e)
@@ -838,7 +894,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(10000);
     sumOrderCache = new LRUCache<String, Object>(10000);
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(6);
+    service = Executors.newFixedThreadPool(4);
 
   }
 
@@ -1113,8 +1169,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     //wait the limit time
 //    new Thread(new WriteIntoFileThread(latch)).start();
-//    latch.await(2,TimeUnit.SECONDS);
-     latch.await(59,TimeUnit.MINUTES);
+    latch.await(2,TimeUnit.SECONDS);
+//     latch.await(59,TimeUnit.MINUTES);
 
      System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
@@ -1183,6 +1239,7 @@ public class OrderSystemImpl implements OrderSystem {
       int indexSuffix = Utils.FNVHash1(String.valueOf(orderId));
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
+        System.out.println("查询的文件:" + OrderSystemImpl.orderIdexFile + indexSuffix + ".txt");
         orderData = DIF.handleOrderLine(OrderSystemImpl.orderIdexFile + indexSuffix + ".txt", comparableKeysOrderingByOrderId, orderId);
 //        orderData = queryOrderByViolence(orderId);
 
@@ -1207,6 +1264,8 @@ public class OrderSystemImpl implements OrderSystem {
       if (orderData == null)
         return null;
     }
+    System.out.println(orderData);
+
     Result result = createResultFromOrderData(orderData, createQueryKeys(keys));
 
     return result;
@@ -1219,8 +1278,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     //从获取到的索引来获取真实的数据
 
-    Row buyerData = null;
-    Row goodData = null;
+       Row buyerData = null;
+       Row goodData = null;
 
 //      String suffix = Utils.getGoodSuffix(orderData.getKV("buyerid").valueAsString());
       int buyerindex = Utils.FNVHash1(orderData.getKV("buyerid").valueAsString());
@@ -1316,7 +1375,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      queryEnd.putKV("createtime", endTime - 1); // exclusive end
 //      queryEnd.putKV("orderid", Long.MAX_VALUE);
 
-      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
+//      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
       int buyerindex = Utils.FNVHash1(buyerid);
 
 
