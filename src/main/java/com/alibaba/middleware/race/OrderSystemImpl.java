@@ -862,6 +862,12 @@ public class OrderSystemImpl implements OrderSystem {
   LRUCache<String, Object> sumOrderCache;
 //  LRUCache<String, Object>  testcache;
 
+  // 记录开始构建的时间
+  long startContTime;
+
+  //全部结束构建的时间 主要是为了查询占用了查询多长时间
+  long endContTime;
+
   ExecutorService service;
 
   public OrderSystemImpl() {
@@ -1145,6 +1151,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     //记录所有的order文件路径
 //    UtilsDataStorge.order_files = orderFiles;
+    //整体开始构建的时间
+    startContTime = System.currentTimeMillis();
 
     //创建文件流
     OperationFiles.CreateFileWriter();
@@ -1176,6 +1184,8 @@ public class OrderSystemImpl implements OrderSystem {
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles)
      {
+       endContTime = System.currentTimeMillis();
+       System.out.println("结束构建的时候用时:" + (endContTime - startContTime) + "ms");
        UtilsDataStorge.end = true;
        try {
          service.shutdown();
@@ -1201,6 +1211,9 @@ public class OrderSystemImpl implements OrderSystem {
       if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
         try {
           UtilsDataStorge.end = true;
+          endContTime = System.currentTimeMillis();
+          System.out.println("结束构建的时候用时:" + (endContTime - startContTime) + "ms");
+
           service.shutdown();
           OperationFiles.closeFileWriter(1);
           System.out.println("queryOrder#############################order 文件关闭");
@@ -1263,7 +1276,7 @@ public class OrderSystemImpl implements OrderSystem {
       if (orderData == null)
         return null;
     }
-    System.out.println(orderData);
+//    System.out.println(orderData);
 
     Result result = createResultFromOrderData(orderData, createQueryKeys(keys));
 
@@ -1335,6 +1348,9 @@ public class OrderSystemImpl implements OrderSystem {
       if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
         try {
           UtilsDataStorge.end = true;
+          endContTime = System.currentTimeMillis();
+          System.out.println("结束构建的时候用时:" + (endContTime - startContTime) + "ms");
+
           service.shutdown();
           OperationFiles.closeFileWriter(1);
           System.out.println("###################################order 文件关闭");
@@ -1444,6 +1460,9 @@ public class OrderSystemImpl implements OrderSystem {
       if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
         try {
           UtilsDataStorge.end = true;
+          endContTime = System.currentTimeMillis();
+          System.out.println("结束构建的时候用时:" + (endContTime - startContTime) + "ms");
+
           service.shutdown();
           OperationFiles.closeFileWriter(1);
           System.out.println("###################################order 文件关闭");
@@ -1562,6 +1581,9 @@ public class OrderSystemImpl implements OrderSystem {
       if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles) {
         try {
           UtilsDataStorge.end = true;
+          endContTime = System.currentTimeMillis();
+          System.out.println("结束构建的时候用时:" + (endContTime - startContTime) + "ms");
+
           service.shutdown();
           OperationFiles.closeFileWriter(1);
           System.out.println("###################################order 文件关闭");
