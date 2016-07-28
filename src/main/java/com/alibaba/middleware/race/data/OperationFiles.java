@@ -66,7 +66,7 @@ public class OperationFiles {
         System.out.println(suffix.length);
         try {
 
-            for (int i = 0; i<2500; i++)
+            for (int i = 0; i<2000; i++)
             {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolderOrder + "buyer/" + OrderSystemImpl.buyerIndexFile + i + sffix , true);
                 UtilsDataStorge.buyerFileswriterMap.put(i, suffixWriter);

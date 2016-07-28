@@ -1169,8 +1169,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     //wait the limit time
 //    new Thread(new WriteIntoFileThread(latch)).start();
-    latch.await(2,TimeUnit.SECONDS);
-//     latch.await(59,TimeUnit.MINUTES);
+//    latch.await(2,TimeUnit.SECONDS);
+     latch.await(59,TimeUnit.MINUTES);
 
      System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
