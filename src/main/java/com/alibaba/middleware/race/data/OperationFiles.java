@@ -228,6 +228,7 @@ public class OperationFiles {
      */
     public static String ReadLineByRandomAccess(String filepath, long offset)
     {
+        long start = System.currentTimeMillis();
         BufferedRandomAccessFile bfr = null;
         try {
              bfr = new BufferedRandomAccessFile(filepath, "r");
@@ -243,6 +244,7 @@ public class OperationFiles {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            System.out.println("search " + filepath + offset +"耗费的时间"+ (System.currentTimeMillis() - start));
         }
       return null;
     }

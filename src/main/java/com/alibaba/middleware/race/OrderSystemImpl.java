@@ -749,7 +749,7 @@ public class OrderSystemImpl implements OrderSystem {
           //正常的buffer读取
 //          BufferedReader bfr = createReader(file);
           //利用randomaccessfile读取
-          int size = 1<<23;
+          int size = 1<<24;
           BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r", size);
           try {
 
@@ -842,7 +842,7 @@ public class OrderSystemImpl implements OrderSystem {
         for (String file : files) {
           //正常的buffer读取
           //利用randomaccessfile读取
-          int size = 1<<23;
+          int size = 1<<24;
           BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r", size);
           try {
 
@@ -930,7 +930,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      } catch (FileNotFoundException e) {
 //        e.printStackTrace();
 //      }
-      int size = 1<<23;
+      int size = 1<<24;
       BufferedRandomAccessFile bfr = null;
       try {
         bfr = new BufferedRandomAccessFile(file, "r", size);
@@ -1521,7 +1521,7 @@ public class OrderSystemImpl implements OrderSystem {
 
       Row query = new Row();
       query.putKV("orderid", orderId);
-      System.out.println("*****query order " + orderId);
+//      System.out.println("*****query order " + orderId);
 
 
       //索引文件的后缀名称
@@ -1771,8 +1771,8 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
     if (queryBySalerCache.get(cacheKey) == null) {
-      System.out.println("*****query saler by id " + salerid);
-      System.out.println("*****query goodid by id " + goodid);
+//      System.out.println("*****query saler by id " + salerid);
+//      System.out.println("*****query goodid by id " + goodid);
 
 
 
@@ -1888,7 +1888,7 @@ public class OrderSystemImpl implements OrderSystem {
 //
     if (sumOrderCache.get(cacheKey) == null) {
 
-      System.out.println("***** query the sum of some keys in goodid : " + goodid + " key :" + key);
+//      System.out.println("***** query the sum of some keys in goodid : " + goodid + " key :" + key);
 
 //      Row queryStart = new Row();
 //      queryStart.putKV("goodid", goodid);
@@ -1932,6 +1932,7 @@ public class OrderSystemImpl implements OrderSystem {
         return null;
       }
      */
+      System.out.println("get the sum from the cache");
       goodList = (List<Row>) sumOrderCache.get(cacheKey);
       if (goodList == null || goodList.size() < 1) {
         return null;
