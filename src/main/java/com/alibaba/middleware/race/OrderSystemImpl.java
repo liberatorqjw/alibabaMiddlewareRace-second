@@ -469,6 +469,7 @@ public class OrderSystemImpl implements OrderSystem {
 
       };
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
+      List<Row> buyerList = new ArrayList<Row>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderBybuyer+"order/" + file);
@@ -487,6 +488,8 @@ public class OrderSystemImpl implements OrderSystem {
               Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
               buyerQue.add(autalData);
+              buyerList.add(autalData);
+
             }
 //            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
           }
@@ -657,6 +660,66 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
       return goodQue;
+    }
+
+    /**
+     *
+     * @param file
+     * @param comparekeys
+     * @param goodid
+     * @return
+     * @throws IOException
+     */
+    public List<Row> handleSumGoodRowList(String file, List<String> comparekeys, String goodid) throws IOException {
+
+
+      List<Row> goodlist =new ArrayList<Row>();
+
+      //read the index file 读取指定的索引文件
+      BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderByGood+"order/" + file);
+      try {
+        //int linecount =0;
+        String line = bfr.readLine();
+        /*
+        while (line != null) {
+          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
+          //这个函数是由子类实现的
+          if (kvMap.get("goodid").valueAsString().equals(goodid))
+          {
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            goodQue.add(autalData);
+          }
+
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+        */
+        while (line != null) {
+//          //这个函数是由子类实现的
+
+          if (line.indexOf("goodid:" + goodid) != -1)
+          {
+            Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
+            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
+            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
+            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+
+            goodlist.add(autalData);
+          }
+
+          //读取下一行
+          line = bfr.readLine();
+          //linecount +=1;
+        }
+      } finally {
+        bfr.close();
+      }
+
+      return goodlist;
     }
   }
 
@@ -1080,7 +1143,6 @@ public class OrderSystemImpl implements OrderSystem {
 
     os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
-    long end1 = System.currentTimeMillis();
     long end =0;
 //    System.out.println( "construct cost of time :" + (end1 - start) + "ms");
 
@@ -1090,12 +1152,13 @@ public class OrderSystemImpl implements OrderSystem {
 
 //    start = System.currentTimeMillis();
     long orderid = 589555952;
+    start = System.currentTimeMillis();
     System.out.println("\n查询订单号为" + orderid + "的订单");
     System.out.println(os.queryOrder(orderid, null));
     end= System.currentTimeMillis();
 
 
-    System.out.println( "construct cost of time :" + (end - start) + "ms");
+    System.out.println( "query order cost of time :" + (end - start) + "ms");
 
 
 
@@ -1159,10 +1222,15 @@ public class OrderSystemImpl implements OrderSystem {
 //
 //
 //
+
     String goodid = "dd-8834-c6874b116c42";
     String attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+
+    start = System.currentTimeMillis();
     System.out.println(os.sumOrdersByGood(goodid, attr));
+    end = System.currentTimeMillis();
+    System.out.println("sum sonst of the time is " + (end - start));
 
     attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
@@ -1378,7 +1446,7 @@ public class OrderSystemImpl implements OrderSystem {
     //wait the limit time
 //    new Thread(new WriteIntoFileThread(latch)).start();
 //    latch.await(2,TimeUnit.SECONDS);
-     latch.await(59, TimeUnit.MINUTES);
+     latch.await(3590, TimeUnit.SECONDS);
 
     System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
@@ -1541,7 +1609,6 @@ public class OrderSystemImpl implements OrderSystem {
       String buyerid) {
 
 
-
     //写个循环等待
     while (!UtilsDataStorge.end)
     {
@@ -1576,8 +1643,8 @@ public class OrderSystemImpl implements OrderSystem {
     String cacheKey = String.valueOf(startTime) +"_"+String.valueOf(endTime)+"_" + buyerid;
     if (queryByBuyerCache.get(cacheKey) == null) {
 
-      System.out.println("*****query buyerid by time " + buyerid);
-      System.out.println("***** start time " + startTime + " endtime " + endTime);
+//      System.out.println("*****query buyerid by time " + buyerid);
+//      System.out.println("***** start time " + startTime + " endtime " + endTime);
 
 
 //      Row queryStart = new Row();
@@ -1593,7 +1660,6 @@ public class OrderSystemImpl implements OrderSystem {
 //      String suffixIndexFile = Utils.getGoodSuffix(buyerid);
       int buyerindex = Utils.FNVHash1(buyerid);
 
-
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
         buyerQUeue = DIF.handleBuyerRowQue(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + buyerindex + ".txt", startTime, endTime - 1, buyerid);
@@ -1603,12 +1669,14 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
 
-      while (buyerQUeue.size() >0)
-      {
-        tmpQueue.add(buyerQUeue.poll());
-      }
+//      while (buyerQUeue.size() >0)
+//      {
+//        tmpQueue.add(buyerQUeue.poll());
+//      }
 
-      queryByBuyerCache.put(cacheKey, tmpQueue);
+//      tmpQueue = new ArrayList<Row>(buyerQUeue);
+
+//      queryByBuyerCache.put(cacheKey, tmpQueue);
 
     }
     else
@@ -1619,26 +1687,26 @@ public class OrderSystemImpl implements OrderSystem {
 //      Utils.PrintCache(queryByBuyerCache, "queryBuyer");
 
     }
-//    final PriorityQueue<Row> orderIndexs =buyerQUeue;
-    final List<Row> orderIndexs = tmpQueue;
+    final PriorityQueue<Row> orderIndexs =buyerQUeue;
+//    final List<Row> orderIndexs = tmpQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
-//      Queue<Row> o =orderIndexs;
+      Queue<Row> o =orderIndexs;
 
-      Iterator<Row> iterator = orderIndexs.iterator();
+//      Iterator<Row> iterator = orderIndexs.iterator();
 
       public boolean hasNext() {
-//        return o != null && o.size() > 0;
-      return iterator.hasNext();
+        return o != null && o.size() > 0;
+//      return iterator.hasNext();
       }
 
       public Result next() {
         if (!hasNext()) {
           return null;
         }
-//        Row orderData = o.poll();
-        Row orderData = iterator.next();
+        Row orderData = o.poll();
+//        Row orderData = iterator.next();
 
         return createResultFromOrderData(orderData, null);
       }
@@ -1718,13 +1786,13 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
       //把数值进行有序的存储
-      while (orderDataSortedBySalerQueue.size() > 0)
-      {
-        tmpQueue.add(orderDataSortedBySalerQueue.poll());
-      }
+//      while (orderDataSortedBySalerQueue.size() > 0)
+//      {
+//        tmpQueue.add(orderDataSortedBySalerQueue.poll());
+//      }
 
 //        queryBySalerCache.put(cacheKey, orderDataSortedBySalerQueue);
-      queryBySalerCache.put(cacheKey, tmpQueue);
+//      queryBySalerCache.put(cacheKey, tmpQueue);
 
     }
 
@@ -1739,18 +1807,18 @@ public class OrderSystemImpl implements OrderSystem {
 
     }
 
-//    final  PriorityQueue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
+    final  PriorityQueue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
 
-    final  List<Row> orderIndexsBySaler = tmpQueue;
+//    final  List<Row> orderIndexsBySaler = tmpQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
-//    Queue<Row> o = orderIndexsBySaler;
-      Iterator<Row> iterator = orderIndexsBySaler.iterator();
+    Queue<Row> o = orderIndexsBySaler;
+//      Iterator<Row> iterator = orderIndexsBySaler.iterator();
 
       public boolean hasNext() {
-//        return o != null && o.size() > 0;
-        return iterator.hasNext();
+        return o != null && o.size() > 0;
+//        return iterator.hasNext();
       }
 
       public Result next() {
@@ -1758,8 +1826,8 @@ public class OrderSystemImpl implements OrderSystem {
           return null;
         }
 
-//        Row orderData = o.poll();
-        Row orderData = iterator.next();
+        Row orderData = o.poll();
+//        Row orderData = iterator.next();
 
 
         return createResultFromOrderData(orderData, createQueryKeys(queryKeys));
@@ -1800,8 +1868,8 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
 
-    PriorityQueue<Row> orderDataSortedByGoodQueue = null;
-
+//    PriorityQueue<Row> orderDataSortedByGoodQueue = null;
+    List<Row> goodList = null;
     String cacheKey = goodid;
     if (key != null) {
       cacheKey += "_" + key;
@@ -1825,37 +1893,46 @@ public class OrderSystemImpl implements OrderSystem {
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
-        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + goodindex + ".txt", comparableKeysOrderingByGoodOrderId, goodid);
+//        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + goodindex + ".txt", comparableKeysOrderingByGoodOrderId, goodid);
 //        orderDataSortedByGoodQueue = queryOrderBySalerViolence(goodid);
+        goodList = DIF.handleSumGoodRowList(OrderSystemImpl.orderGoodOrderIdFile + goodindex + ".txt", comparableKeysOrderingByGoodOrderId, goodid);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
 
-      sumOrderCache.put(cacheKey, orderDataSortedByGoodQueue);
+      sumOrderCache.put(cacheKey, goodList);
 
-      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
-        return null;
-      }
+//      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
+//        return null;
+//      }
 
 
     }
     else
     {
+      /*
       orderDataSortedByGoodQueue = (PriorityQueue<Row>)sumOrderCache.get(cacheKey);
+
 //      Utils.PrintCache(sumOrderCache, "sumorder");
       System.out.println("######sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
         return null;
       }
+     */
+      goodList = (List<Row>) sumOrderCache.get(cacheKey);
+      if (goodList == null || goodList.size() < 1) {
+        return null;
+      }
 
     }
     HashSet<String> queryingKeys = new HashSet<String>();
     queryingKeys.add(key);
-    List<ResultImpl> allData = new ArrayList<ResultImpl>(orderDataSortedByGoodQueue.size());
+    List<ResultImpl> allData = new ArrayList<ResultImpl>();
 
-    Iterator<Row> sumit = orderDataSortedByGoodQueue.iterator();
+//    Iterator<Row> sumit = orderDataSortedByGoodQueue.iterator();
+    Iterator<Row> sumit = goodList.iterator();
 
     while (sumit.hasNext())
     {
