@@ -307,7 +307,7 @@ public class OrderSystemImpl implements OrderSystem {
     public Row  handleOrderLine(String file, List<String> comparekeys, long orderid) throws FileNotFoundException, Exception {
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrder +"order/" + file);
-      System.out.println(UtilsDataStorge.storeFolderOrder +"order/" + file);
+//      System.out.println(UtilsDataStorge.storeFolderOrder +"order/" + file);
       try {
         //int linecount =0;
         String line = bfr.readLine();
@@ -695,17 +695,18 @@ public class OrderSystemImpl implements OrderSystem {
             String line = bfr.readLine();
             while (line != null) {
 
-              Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), flag);// 返回的是一条数据的map
-
+//              Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), flag);// 返回的是一条数据的map
+              String goodid = createGoodStringfromLine(new String(line.getBytes("iso-8859-1"), "utf-8"));
               String address = file.trim() + "," + String.valueOf(offset);
               //goodfiles
-              if (flag == 0)
-              {
+//              if (flag == 0)
+//              {
                 try {
                   //按照goodid的最后一位形成索引文件的命名
-                  String goodid = row.getKV("goodid").valueAsString();
+//                  String goodid = row.getKV("goodid").valueAsString();
 //                  String suffix = Utils.getGoodSuffix(goodid);
-                  String content = "goodid:" + row.getKV("goodid").valueAsString()+ "\t" + "address:"+ address.trim();
+//                  String content = "goodid:" + row.getKV("goodid").valueAsString()+ "\t" + "address:"+ address.trim();
+                  String content = "goodid:" + goodid+ "\t" + "address:"+ address.trim();
 
                   int index = Utils.FNVHash1(goodid);
 //                  System.out.println("good的文件索引: " + index);
@@ -715,22 +716,22 @@ public class OrderSystemImpl implements OrderSystem {
                 } catch (Exception e) {
                   e.printStackTrace();
                 }
-              }
+//              }
 
               //buyerfiles
-              else
-              {
-                try {
-                  String buyerid =  row.getKV("buyerid").valueAsString();
-//                  String suffix = Utils.getGoodSuffix(buyerid);
-                  String content = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t"  + "address:" + address.trim() ;
-                  int index = Utils.FNVHash1(buyerid);
-//                  System.out.println("buyer的文件索引: " + index);
-                  outputWriters.get(index).write(content+ "\n");
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-              }
+//              else
+//              {
+//                try {
+//                  String buyerid =  row.getKV("buyerid").valueAsString();
+////                  String suffix = Utils.getGoodSuffix(buyerid);
+//                  String content = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t"  + "address:" + address.trim() ;
+//                  int index = Utils.FNVHash1(buyerid);
+////                  System.out.println("buyer的文件索引: " + index);
+//                  outputWriters.get(index).write(content+ "\n");
+//                } catch (Exception e) {
+//                  e.printStackTrace();
+//                }
+//              }
 
               offset +=line.length() +1;
 
@@ -754,6 +755,72 @@ public class OrderSystemImpl implements OrderSystem {
     }
   }
 
+
+  private class ReadBuyerFiles implements Runnable
+  {
+    private Collection<String> files;
+    private ConcurrentHashMap<Integer, FileWriter> outputWriters;
+    private int flag;
+    private CountDownLatch latch;
+
+
+    public ReadBuyerFiles(Collection<String> files, ConcurrentHashMap<Integer, FileWriter> outputWriters, int flag, CountDownLatch latch) {
+      this.files = files;
+      this.outputWriters = outputWriters;
+      this.flag = flag;
+      this.latch = latch;
+    }
+
+
+    @Override
+    public void run() {
+      try {
+        for (String file : files) {
+          //正常的buffer读取
+          //利用randomaccessfile读取
+          BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r");
+          try {
+
+            long offset = 0;
+            String line = bfr.readLine();
+            while (line != null) {
+
+//              Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), flag);// 返回的是一条数据的map
+              String buyerid = createBuyerStringfromLine(new String(line.getBytes("iso-8859-1"), "utf-8"));
+              String address = file.trim() + "," + String.valueOf(offset);
+
+              //buyerfiles
+                try {
+
+                  String content = "buyerid:" + buyerid + "\t"  + "address:" + address.trim() ;
+                  int index = Utils.FNVHash1(buyerid);
+//                  System.out.println("buyer的文件索引: " + index);
+                  outputWriters.get(index).write(content+ "\n");
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+
+
+              offset +=line.length() +1;
+              //读取下一行
+              line = bfr.readLine();
+
+            }
+          } finally {
+            bfr.close();
+          }
+        }
+        OperationFiles.closeFileWriter(flag);
+        System.out.println("buyer or good 的文件读完");
+        if (flag == 1)
+          UtilsDataStorge.end = true;
+        latch.countDown();
+
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
   /**
    * 多线程读取order的文件
@@ -818,25 +885,25 @@ public class OrderSystemImpl implements OrderSystem {
           //记录处理过的order文件条数
           UtilsDataStorge.orderFileLines.incrementAndGet();
 
-          Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), 1);// 返回的是一条数据的map
+//          Row row = createKVMapFromLineToSome(new String(line.getBytes("iso-8859-1"), "utf-8"), 1);// 返回的是一条数据的map
+
+          String[] odata = createOrderStringfromLine(new String(line.getBytes("iso-8859-1"), "utf-8"));
+          String orderid = odata[1];
+          String buyerid = odata[0];
+          String goodid =  odata[3];
+          String createtime =odata[2];
+
           address = file.trim() + "," + String.valueOf(offset);
 
           //order
             try {
-//              String suffixByorderid = Utils.getOrderSuffix(row.getKV("orderid").valueAsLong());
-//              String suffixBygoodid = Utils.getGoodSuffix(row.getKV("goodid").valueAsString());
-//              String suffixBybuyerid = Utils.getGoodSuffix(row.getKV("buyerid").valueAsString());
 
-//               long indexorder = Utils.getOrderSuffix(row.getKV("orderid").valueAsLong());
-               int indexorder = Utils.FNVHash1(row.getKV("orderid").valueAsString());
-               int indexOrderBuyer = Utils.FNVHash1(row.getKV("buyerid").valueAsString());
-               int indexOrderGood = Utils.FNVHash1(row.getKV("goodid").valueAsString());
-//              writeQueue.get(OrderSystemImpl.orderIdexFile + suffixByorderid).offer(line + "\n");
-//              writeQueue.get(OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + suffixBybuyerid).offer(line + "\n");
-//              writeQueue.get(OrderSystemImpl.orderGoodOrderIdFile + suffixBygoodid).offer(line + "\n");
-              String contentOrder = "orderid:" + row.getKV("orderid").valueAsString() + "\t"  + "address:" + address.trim() ;
-              String contentOrderBuyer = "buyerid:" + row.getKV("buyerid").valueAsString() + "\t" +"createtime:" + row.getKV("createtime").valueAsString() + "\t" + "address:" + address.trim();
-              String contentOrderGood = "goodid:" + row.getKV("goodid").valueAsString() + "\t"  + "address:" + address.trim();
+               int indexorder = Utils.FNVHash1(orderid);
+               int indexOrderBuyer = Utils.FNVHash1(buyerid);
+               int indexOrderGood = Utils.FNVHash1(goodid);
+              String contentOrder = "orderid:" + orderid + "\t"  + "address:" + address.trim() ;
+              String contentOrderBuyer = "buyerid:" + buyerid + "\t" +"createtime:" + createtime + "\t" + "address:" + address.trim();
+              String contentOrderGood = "goodid:" + goodid + "\t"  + "address:" + address.trim();
 
               outputWriter.get(indexorder).write(contentOrder + "\n");
               outputBuyerWriter.get(indexOrderBuyer).write(contentOrderBuyer + "\n");
@@ -857,11 +924,8 @@ public class OrderSystemImpl implements OrderSystem {
       }
       System.out.println("****************结束一个文件的读************************" + file);
 
-      if (flag) {
-        System.out.println("latch down");
-        latch.countDown();
-      }
-
+      System.out.println("latch down");
+      latch.countDown();
       UtilsDataStorge.countFile.incrementAndGet();
     }
   }
@@ -1038,13 +1102,16 @@ public class OrderSystemImpl implements OrderSystem {
     String buyerid = "ap-8a57-454ce6fcfb19";
     long startTime = 1470344717;
     long endTime = 1483767105;
+    start = System.currentTimeMillis();
     System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
     Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
     while (it.hasNext()) {
       System.out.println(it.next());
     }
+
+    end = System.currentTimeMillis();
     //long end = System.currentTimeMillis();
-    System.out.println( "construct cost of time :" + (end - start) + "ms");
+    System.out.println( "saerch buyer cost of time :" + (end - start) + "ms");
 
 
 
@@ -1187,6 +1254,61 @@ public class OrderSystemImpl implements OrderSystem {
 
     return kvMap;
   }
+
+  /**
+   * 形成good数据的有用数组
+   * @param line
+   * @return
+   */
+  public static String createGoodStringfromLine(String line)
+  {
+//    String[] str = new String[1];
+    String value = line.split("goodid:")[1].split("\t")[0];
+//    str[0] = value;
+    return value;
+
+  }
+
+  /**
+   * 形成buyer数据的数组
+   * @param line
+   * @return
+   */
+  public static String createBuyerStringfromLine(String line)
+  {
+//    String[] str = new String[1];
+    String value = line.split("buyerid:")[1].split("\t")[0];
+//    str[0] = value;
+    return value;
+
+  }
+
+  /**
+   * 形成order有用数据的数组
+   * @param line
+   * @return
+   */
+  public static String[] createOrderStringfromLine(String line)
+  {
+    String[] str = new String[4];
+    String value = line.split("buyerid:")[1].split("\t")[0];
+    str[0] = value;
+
+    //orderid
+    value = line.split("orderid:")[1].split("\t")[0];
+    str[1] = value;
+
+    //createtime
+    value = line.split("createtime:")[1].split("\t")[0];
+    str[2] = value;
+
+    //goodid
+    value = line.split("goodid:")[1].split("\t")[0];
+    str[3] = value;
+    return str;
+
+  }
+
   private abstract class DataFileHandler {
     abstract void handleRow(Row row);
 
@@ -1242,7 +1364,7 @@ public class OrderSystemImpl implements OrderSystem {
     CountDownLatch latch = new CountDownLatch(2 + orderFiles.size());
 
     new Thread(new ReadAllFilesThread(goodFiles, UtilsDataStorge.goodFileswriterMap, 0, latch)).start();
-    new Thread(new ReadAllFilesThread(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
+    new Thread(new ReadBuyerFiles(buyerFiles, UtilsDataStorge.buyerFileswriterMap, 2, latch)).start();
 //    new Thread(new ReadAllFilesThread(orderFiles, UtilsDataStorge.orderFileswriterMap, 1, latch)).start();
 //    new Thread(new ConstructTree(goodFiles, latch, goodDataStoredByGood, comparableKeysOrderingByGood)).start();
 //    new Thread(new ConstructTree(buyerFiles, latch, buyerDataStoredByBuyer, comparableKeysOrderingByBuyer)).start();
@@ -1256,9 +1378,9 @@ public class OrderSystemImpl implements OrderSystem {
     //wait the limit time
 //    new Thread(new WriteIntoFileThread(latch)).start();
 //    latch.await(2,TimeUnit.SECONDS);
-     latch.await(59,TimeUnit.MINUTES);
+     latch.await(59, TimeUnit.MINUTES);
 
-     System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
+    System.out.println("构建结束的时候, 已经处理过的order文件条数：" + UtilsDataStorge.orderFileLines.get());
      System.out.println("构建结束的时候, 已经处理过的order文件数：" + UtilsDataStorge.countFile.get());
      if (UtilsDataStorge.countFile.get() == UtilsDataStorge.countAllFiles)
      {
@@ -1493,7 +1615,7 @@ public class OrderSystemImpl implements OrderSystem {
     {
 //      buyerQUeue = (PriorityQueue<Row>) queryByBuyerCache.get(cacheKey);
       tmpQueue = (List<Row>)queryByBuyerCache.get(cacheKey);
-      System.out.println("buyercache get the row size " + tmpQueue.size());
+      System.out.println("#####buyercache get the row size " + tmpQueue.size());
 //      Utils.PrintCache(queryByBuyerCache, "queryBuyer");
 
     }
@@ -1612,7 +1734,7 @@ public class OrderSystemImpl implements OrderSystem {
 //      Utils.PrintCache(queryBySalerCache, "querySaler");
       tmpQueue = (List<Row>) queryBySalerCache.get(cacheKey);
 
-      System.out.println("saler get from the cache the size is " + tmpQueue.size());
+      System.out.println("#####saler get from the cache the size is " + tmpQueue.size());
 //      System.out.println(this.queryBySalerCache.get(cacheKey));
 
     }
@@ -1722,7 +1844,7 @@ public class OrderSystemImpl implements OrderSystem {
     {
       orderDataSortedByGoodQueue = (PriorityQueue<Row>)sumOrderCache.get(cacheKey);
 //      Utils.PrintCache(sumOrderCache, "sumorder");
-      System.out.println("sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
+      System.out.println("######sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
 
       if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
         return null;
