@@ -749,7 +749,8 @@ public class OrderSystemImpl implements OrderSystem {
           //正常的buffer读取
 //          BufferedReader bfr = createReader(file);
           //利用randomaccessfile读取
-          BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r");
+          int size = 1<<23;
+          BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r", size);
           try {
 
             long offset = 0;
@@ -841,7 +842,8 @@ public class OrderSystemImpl implements OrderSystem {
         for (String file : files) {
           //正常的buffer读取
           //利用randomaccessfile读取
-          BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r");
+          int size = 1<<23;
+          BufferedRandomAccessFile bfr = new BufferedRandomAccessFile(file, "r", size);
           try {
 
             long offset = 0;
@@ -928,9 +930,10 @@ public class OrderSystemImpl implements OrderSystem {
 //      } catch (FileNotFoundException e) {
 //        e.printStackTrace();
 //      }
+      int size = 1<<23;
       BufferedRandomAccessFile bfr = null;
       try {
-        bfr = new BufferedRandomAccessFile(file, "r");
+        bfr = new BufferedRandomAccessFile(file, "r", size);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -984,6 +987,14 @@ public class OrderSystemImpl implements OrderSystem {
       }catch(Exception e)
       {
         e.printStackTrace();
+      }
+      finally {
+        try {
+          if (bfr != null)
+             bfr.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
       System.out.println("****************结束一个文件的读************************" + file);
 
