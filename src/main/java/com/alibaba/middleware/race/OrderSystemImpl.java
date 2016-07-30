@@ -469,7 +469,7 @@ public class OrderSystemImpl implements OrderSystem {
 
       };
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
-      List<Row> buyerList = new ArrayList<Row>();
+//      List<Row> buyerList = new ArrayList<Row>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderBybuyer+"order/" + file);
@@ -488,7 +488,7 @@ public class OrderSystemImpl implements OrderSystem {
               Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
               buyerQue.add(autalData);
-              buyerList.add(autalData);
+//              buyerList.add(autalData);
 
             }
 //            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
