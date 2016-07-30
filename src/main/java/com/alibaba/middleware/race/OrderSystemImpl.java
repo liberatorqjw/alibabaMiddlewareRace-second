@@ -945,9 +945,27 @@ public class OrderSystemImpl implements OrderSystem {
         String line = bfr.readLine();
         String address = null;
         long offset =0;
+        int countLine =1;
+        int rowlimit =600 * 10000 ; //20000 4.4M;  1.3G
+        String filename = file.substring(file.lastIndexOf("/") +1);
+        int serilizeNumber = 1;
+        String newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
+
+        FileWriter sourceWriter = new FileWriter(newSourceFileName, true);
 
         while (line != null) {
 
+
+          if (countLine % rowlimit == 0)
+          {
+            sourceWriter.close();
+            serilizeNumber++;
+            offset =0;
+            newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
+            sourceWriter = new FileWriter(newSourceFileName, true);
+          }
+          //写入新的文件中
+          sourceWriter.write(new String(line.getBytes("iso-8859-1"), "utf-8") + "\n");
           //记录处理过的order文件条数
           UtilsDataStorge.orderFileLines.incrementAndGet();
 
@@ -959,7 +977,8 @@ public class OrderSystemImpl implements OrderSystem {
           String goodid =  odata[3];
           String createtime =odata[2];
 
-          address = file.trim() + "," + String.valueOf(offset);
+//          address = file.trim() + "," + String.valueOf(offset);
+          address = newSourceFileName.trim() + "," + String.valueOf(offset);
 
           //order
             try {
@@ -983,7 +1002,11 @@ public class OrderSystemImpl implements OrderSystem {
           offset += line.length() +1;
 
           line = bfr.readLine();
+          countLine ++;
         }
+        //关闭新文件的写入操作
+        sourceWriter.close();
+
       }catch(Exception e)
       {
         e.printStackTrace();
@@ -1155,8 +1178,10 @@ public class OrderSystemImpl implements OrderSystem {
     os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end =0;
-//    System.out.println( "construct cost of time :" + (end1 - start) + "ms");
+    System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
 
+//    if (true)
+//      return;
 
     // 用例
 

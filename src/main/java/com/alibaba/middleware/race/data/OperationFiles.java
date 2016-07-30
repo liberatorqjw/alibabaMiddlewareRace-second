@@ -31,6 +31,14 @@ public class OperationFiles {
         String sffix = ".txt";
 
         //创建文件夹
+        //存储原始的order文件
+        File filesource = new File(UtilsDataStorge.storeFolderOrder + "source");
+        if (!filesource.exists() && !filesource.isDirectory())
+        {
+            filesource.mkdir();
+        }
+
+
         File fileuyer = new File(UtilsDataStorge.storeFolderOrder + "buyer");
         if (!fileuyer.exists() && !fileuyer.isDirectory())
         {
@@ -228,6 +236,8 @@ public class OperationFiles {
      */
     public static String ReadLineByRandomAccess(String filepath, long offset)
     {
+        UtilsDataStorge.countRandomAccessfile.incrementAndGet();
+
         long start = System.currentTimeMillis();
         BufferedRandomAccessFile bfr = null;
         try {
@@ -244,7 +254,9 @@ public class OperationFiles {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            System.out.println("search " + filepath + offset +"耗费的时间"+ (System.currentTimeMillis() - start));
+            //每一万次打印一次, 并且只打印order的信息
+            if (UtilsDataStorge.countRandomAccessfile.get() % 10000 == 0 && filepath.indexOf("order") != -1)
+            System.out.println("search " + filepath + "-"+ offset +"耗费的时间"+ (System.currentTimeMillis() - start));
         }
       return null;
     }

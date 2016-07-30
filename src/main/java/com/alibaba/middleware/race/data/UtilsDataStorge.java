@@ -64,4 +64,8 @@ public class UtilsDataStorge {
     //order的已经处理完的条数
     public static AtomicInteger orderFileLines = new AtomicInteger(0);
 
+    //记录一下访问的randomaccsessfile的次数
+    public static AtomicInteger countRandomAccessfile = new AtomicInteger(0);
+
+
 }
