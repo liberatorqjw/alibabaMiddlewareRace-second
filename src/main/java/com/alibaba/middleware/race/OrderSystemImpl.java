@@ -468,8 +468,34 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       };
+
+      //从小到大
+      Comparator<Long> offsetcompare =  new Comparator<Long>(){
+
+        public int compare(Long o1, Long o2) {
+          // TODO Auto-generated method stub
+
+          if(o2 > o1)
+          {
+            return -1;
+          }
+          else if(o2 < o1)
+          {
+            return 1;
+          }
+          else
+          {
+            return 0;
+          }
+
+        }
+
+
+      };
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
 //      List<Row> buyerList = new ArrayList<Row>();
+      //存储有序的offset
+      Map<String, PriorityQueue<Long>> offsetMap = new HashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderBybuyer+"order/" + file);
@@ -485,15 +511,24 @@ public class OrderSystemImpl implements OrderSystem {
             if (kvMap.getKV("createtime").valueAsLong() >=startTime && kvMap.getKV("createtime").valueAsLong() <= endTime) {
               String filename = kvMap.getKV("address").valueAsString().split(",")[0];
               long offset = Long.valueOf(kvMap.getKV("address").valueAsString().split(",")[1]);
-              Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+//              Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
-              buyerQue.add(autalData);
+//              buyerQue.add(autalData);
 //              buyerList.add(autalData);
+              if (offsetMap.get(filename) == null)
+              {
+                PriorityQueue<Long> offsetItem = new PriorityQueue<Long>(11, offsetcompare);
+                offsetItem.offer(offset);
+                offsetMap.put(filename, offsetItem);
+              }
+              else
+              {
+                offsetMap.get(filename).offer(offset);
+              }
 
             }
 //            System.out.println("add to the queue " + kvMap.getKV("orderid").valueAsLong());
           }
-
           //读取下一行
           line = bfr.readLine();
           //linecount +=1;
@@ -504,6 +539,22 @@ public class OrderSystemImpl implements OrderSystem {
       }
       finally {
         bfr.close();
+      }
+
+      //全部的索引读取结束以后，开始读取真实的原始数据
+      for (String keyfilename: offsetMap.keySet())
+      {
+        BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r");
+        String Realine = null;
+        while (offsetMap.get(keyfilename).size() >0)
+        {
+          //到达索引位置
+          bufAccsess.seek(offsetMap.get(keyfilename).poll());
+          Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
+          Row autalData = createKVMapFromLine(Realine);
+          buyerQue.add(autalData);
+        }
+        bufAccsess.close();
       }
 
       return buyerQue;
@@ -614,7 +665,28 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       };
+
+      Comparator<Long> offsetCompare = new Comparator<Long>() {
+        @Override
+        public int compare(Long o1, Long o2) {
+          if(o2 > o1)
+          {
+            return -1;
+          }
+          else if(o2 < o1)
+          {
+            return 1;
+          }
+          else
+          {
+            return 0;
+          }
+
+        }
+      };
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
+      Map<String, PriorityQueue<Long>> offsetMap = new HashMap<String, PriorityQueue<Long>>();
+
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderByGood+"order/" + file);
       try {
@@ -645,10 +717,22 @@ public class OrderSystemImpl implements OrderSystem {
           {
             Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
-            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
-            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+            long offset =Long.valueOf(kvMap.getKV("address").valueAsString().split(",")[1]);
+//            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+//
+//            goodQue.add(autalData);
 
-            goodQue.add(autalData);
+            if (offsetMap.get(filename) == null)
+            {
+              PriorityQueue<Long> offsetItem = new PriorityQueue<Long>(11, offsetCompare);
+              offsetItem.offer(offset);
+              offsetMap.put(filename, offsetItem);
+            }
+            else {
+              offsetMap.get(filename).offer(offset);
+            }
+
+
           }
 
           //读取下一行
@@ -657,6 +741,21 @@ public class OrderSystemImpl implements OrderSystem {
         }
       } finally {
         bfr.close();
+      }
+
+      //按照文件等顺序读取真实的数据
+      for (String RealFilename : offsetMap.keySet())
+      {
+        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
+        String realLine = null;
+        while (offsetMap.get(RealFilename).size() >0)
+        {
+          bufAccess.seek(offsetMap.get(RealFilename).poll());
+          realLine = new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
+          Row autalData = createKVMapFromLine(realLine);
+          goodQue.add(autalData);
+        }
+        bufAccess.close();
       }
 
       return goodQue;

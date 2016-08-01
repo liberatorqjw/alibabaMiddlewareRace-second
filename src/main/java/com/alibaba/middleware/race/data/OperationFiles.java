@@ -239,13 +239,13 @@ public class OperationFiles {
      */
     public static String ReadLineByRandomAccess(String filepath, long offset)
     {
-        UtilsDataStorge.countRandomAccessfile.incrementAndGet();
+//        UtilsDataStorge.countRandomAccessfile.incrementAndGet();
 
         long start = System.currentTimeMillis();
         BufferedRandomAccessFile bfr = null;
         try {
              bfr = new BufferedRandomAccessFile(filepath, "r");
-            bfr.seek(offset);
+             bfr.seek(offset);
             return new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
 
         } catch (IOException e) {
@@ -258,8 +258,8 @@ public class OperationFiles {
                     e.printStackTrace();
                 }
             //每一万次打印一次, 并且只打印order的信息
-            if (UtilsDataStorge.countRandomAccessfile.get() % 10000 == 0 && filepath.indexOf("order") != -1)
-            System.out.println("search " + filepath + "-"+ offset +"耗费的时间"+ (System.currentTimeMillis() - start));
+//            if (UtilsDataStorge.countRandomAccessfile.get() % 10000 == 0 && filepath.indexOf("order") != -1)
+//            System.out.println("search " + filepath + "-"+ offset +"耗费的时间"+ (System.currentTimeMillis() - start));
         }
       return null;
     }
