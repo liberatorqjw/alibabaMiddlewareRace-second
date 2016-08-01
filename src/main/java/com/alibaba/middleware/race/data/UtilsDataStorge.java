@@ -5,6 +5,7 @@ import com.alibaba.middleware.race.OrderSystemImpl;
 import org.omg.PortableInterceptor.INACTIVE;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,17 +34,17 @@ public class UtilsDataStorge {
 //    public static HashMap<String, BufferedOutputStream> buyerFilesMap = new HashMap<String, BufferedOutputStream>();
 
     //存储商品的打开文件
-    public static ConcurrentHashMap<Integer, FileWriter> goodFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+    public static ConcurrentHashMap<Integer, BufferedWriter> goodFileswriterMap = new ConcurrentHashMap<Integer, BufferedWriter>();
 
     //存储订单的打开文件
-    public static ConcurrentHashMap<Integer, FileWriter> orderFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+    public static ConcurrentHashMap<Integer, BufferedWriter> orderFileswriterMap = new ConcurrentHashMap<Integer, BufferedWriter>();
 
     //存储买家的打开文件
-    public static ConcurrentHashMap<Integer, FileWriter> buyerFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+    public static ConcurrentHashMap<Integer, BufferedWriter> buyerFileswriterMap = new ConcurrentHashMap<Integer, BufferedWriter>();
 
-    public static ConcurrentHashMap<Integer, FileWriter> orderbuyerFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+    public static ConcurrentHashMap<Integer, BufferedWriter> orderbuyerFileswriterMap = new ConcurrentHashMap<Integer, BufferedWriter>();
 
-    public static ConcurrentHashMap<Integer, FileWriter> ordergoodFileswriterMap = new ConcurrentHashMap<Integer, FileWriter>();
+    public static ConcurrentHashMap<Integer, BufferedWriter> ordergoodFileswriterMap = new ConcurrentHashMap<Integer, BufferedWriter>();
 
     //order files
     public static ArrayList<String> order_files = new ArrayList<String>();

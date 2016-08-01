@@ -729,12 +729,12 @@ public class OrderSystemImpl implements OrderSystem {
   private class ReadAllFilesThread implements Runnable {
 
     private Collection<String> files;
-    private ConcurrentHashMap<Integer, FileWriter> outputWriters;
+    private ConcurrentHashMap<Integer, BufferedWriter> outputWriters;
     private int flag;
     private CountDownLatch latch;
 
 
-    public ReadAllFilesThread(Collection<String> files, ConcurrentHashMap<Integer, FileWriter> outputWriters, int flag, CountDownLatch latch) {
+    public ReadAllFilesThread(Collection<String> files, ConcurrentHashMap<Integer, BufferedWriter> outputWriters, int flag, CountDownLatch latch) {
       this.files = files;
       this.outputWriters = outputWriters;
       this.flag = flag;
@@ -823,12 +823,12 @@ public class OrderSystemImpl implements OrderSystem {
   private class ReadBuyerFiles implements Runnable
   {
     private Collection<String> files;
-    private ConcurrentHashMap<Integer, FileWriter> outputWriters;
+    private ConcurrentHashMap<Integer, BufferedWriter> outputWriters;
     private int flag;
     private CountDownLatch latch;
 
 
-    public ReadBuyerFiles(Collection<String> files, ConcurrentHashMap<Integer, FileWriter> outputWriters, int flag, CountDownLatch latch) {
+    public ReadBuyerFiles(Collection<String> files, ConcurrentHashMap<Integer, BufferedWriter> outputWriters, int flag, CountDownLatch latch) {
       this.files = files;
       this.outputWriters = outputWriters;
       this.flag = flag;
@@ -896,9 +896,9 @@ public class OrderSystemImpl implements OrderSystem {
     private String file;
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> writeQueue;
     private CountDownLatch latch;
-    private ConcurrentHashMap<Integer, FileWriter> outputWriter;
-    private ConcurrentHashMap<Integer, FileWriter> outputGoodWriter;
-    private ConcurrentHashMap<Integer, FileWriter> outputBuyerWriter;
+    private ConcurrentHashMap<Integer, BufferedWriter> outputWriter;
+    private ConcurrentHashMap<Integer, BufferedWriter> outputGoodWriter;
+    private ConcurrentHashMap<Integer, BufferedWriter> outputBuyerWriter;
 
     private boolean flag;
 
@@ -908,7 +908,7 @@ public class OrderSystemImpl implements OrderSystem {
       this.latch = latch;
     }
 
-    public ReadOrderFilesInQueue(String file, ConcurrentHashMap<Integer, FileWriter> outputWriter, ConcurrentHashMap<Integer, FileWriter> outputGoodWriter, ConcurrentHashMap<Integer, FileWriter> outputBuyerWriter, boolean flag, CountDownLatch latch) {
+    public ReadOrderFilesInQueue(String file, ConcurrentHashMap<Integer, BufferedWriter> outputWriter, ConcurrentHashMap<Integer, BufferedWriter> outputGoodWriter, ConcurrentHashMap<Integer, BufferedWriter> outputBuyerWriter, boolean flag, CountDownLatch latch) {
       this.file = file;
       this.outputWriter = outputWriter;
       this.outputGoodWriter = outputGoodWriter;
@@ -945,27 +945,27 @@ public class OrderSystemImpl implements OrderSystem {
         String line = bfr.readLine();
         String address = null;
         long offset =0;
-        int countLine =1;
-        int rowlimit =600 * 10000 ; //20000 4.4M;  1.3G
-        String filename = file.substring(file.lastIndexOf("/") +1);
-        int serilizeNumber = 1;
-        String newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
-
-        FileWriter sourceWriter = new FileWriter(newSourceFileName, true);
+//        int countLine =1;
+//        int rowlimit =600 * 10000 ; //20000 4.4M;  1.3G
+//        String filename = file.substring(file.lastIndexOf("/") +1);
+//        int serilizeNumber = 1;
+//        String newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
+//
+//        FileWriter sourceWriter = new FileWriter(newSourceFileName, true);
 
         while (line != null) {
 
 
-          if (countLine % rowlimit == 0)
-          {
-            sourceWriter.close();
-            serilizeNumber++;
-            offset =0;
-            newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
-            sourceWriter = new FileWriter(newSourceFileName, true);
-          }
-          //写入新的文件中
-          sourceWriter.write(new String(line.getBytes("iso-8859-1"), "utf-8") + "\n");
+//          if (countLine % rowlimit == 0)
+//          {
+//            sourceWriter.close();
+//            serilizeNumber++;
+//            offset =0;
+//            newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
+//            sourceWriter = new FileWriter(newSourceFileName, true);
+//          }
+//          //写入新的文件中
+//          sourceWriter.write(new String(line.getBytes("iso-8859-1"), "utf-8") + "\n");
           //记录处理过的order文件条数
           UtilsDataStorge.orderFileLines.incrementAndGet();
 
@@ -977,8 +977,8 @@ public class OrderSystemImpl implements OrderSystem {
           String goodid =  odata[3];
           String createtime =odata[2];
 
-//          address = file.trim() + "," + String.valueOf(offset);
-          address = newSourceFileName.trim() + "," + String.valueOf(offset);
+          address = file.trim() + "," + String.valueOf(offset);
+//          address = newSourceFileName.trim() + "," + String.valueOf(offset);
 
           //order
             try {
@@ -1002,10 +1002,10 @@ public class OrderSystemImpl implements OrderSystem {
           offset += line.length() +1;
 
           line = bfr.readLine();
-          countLine ++;
+//          countLine ++;
         }
         //关闭新文件的写入操作
-        sourceWriter.close();
+//        sourceWriter.close();
 
       }catch(Exception e)
       {
