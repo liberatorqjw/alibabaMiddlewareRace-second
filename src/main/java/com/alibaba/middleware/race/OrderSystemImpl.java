@@ -544,7 +544,7 @@ public class OrderSystemImpl implements OrderSystem {
       //全部的索引读取结束以后，开始读取真实的原始数据
       for (String keyfilename: offsetMap.keySet())
       {
-        BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r");
+        BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r", 1<<20); //1M的buffer
         String Realine = null;
         while (offsetMap.get(keyfilename).size() >0)
         {
@@ -637,6 +637,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     public PriorityQueue<Row> handleGoodRowQueue(String file, List<String> comparekeys, String goodid) throws IOException {
 
+      //从小到大排序
       Comparator<Row> OrderIsdn =  new Comparator<Row>(){
         public int compare(Row o1, Row o2) {
           // TODO Auto-generated method stub
@@ -751,7 +752,7 @@ public class OrderSystemImpl implements OrderSystem {
         while (offsetMap.get(RealFilename).size() >0)
         {
           bufAccess.seek(offsetMap.get(RealFilename).poll());
-          realLine = new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
+          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
           Row autalData = createKVMapFromLine(realLine);
           goodQue.add(autalData);
         }
@@ -772,7 +773,27 @@ public class OrderSystemImpl implements OrderSystem {
     public List<Row> handleSumGoodRowList(String file, List<String> comparekeys, String goodid) throws IOException {
 
 
+
+      Comparator<Long> offsetCompare = new Comparator<Long>() {
+        @Override
+        public int compare(Long o1, Long o2){
+          if(o2 > o1)
+        {
+          return -1;
+        }
+        else if(o2 < o1)
+        {
+          return 1;
+        }
+        else
+        {
+          return 0;
+        }
+
+      }
+      };
       List<Row> goodlist =new ArrayList<Row>();
+      Map<String, PriorityQueue<Long>> offsetMap = new HashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderByGood+"order/" + file);
@@ -804,10 +825,23 @@ public class OrderSystemImpl implements OrderSystem {
           {
             Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
-            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
-            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
+            long offset =Long.valueOf(kvMap.getKV("address").valueAsString().split(",")[1]);
+//            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
-            goodlist.add(autalData);
+//            goodlist.add(autalData);
+            if (offsetMap.get(filename) == null)
+            {
+              PriorityQueue<Long> priorityQueue = new PriorityQueue<Long>(11, offsetCompare);
+              priorityQueue.offer(offset);
+              offsetMap.put(filename, priorityQueue);
+
+            }
+            else
+            {
+              offsetMap.get(filename).offer(offset);
+            }
+
+
           }
 
           //读取下一行
@@ -816,6 +850,21 @@ public class OrderSystemImpl implements OrderSystem {
         }
       } finally {
         bfr.close();
+      }
+
+      //按照文件等顺序读取真实的数据
+      for (String RealFilename : offsetMap.keySet())
+      {
+        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
+        String realLine = null;
+        while (offsetMap.get(RealFilename).size() >0)
+        {
+          bufAccess.seek(offsetMap.get(RealFilename).poll());
+          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
+          Row autalData = createKVMapFromLine(realLine);
+          goodlist.add(autalData);
+        }
+        bufAccess.close();
       }
 
       return goodlist;
@@ -1238,7 +1287,7 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(10000);
     sumOrderCache = new LRUCache<String, Object>(10000);
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(4);
+    service = Executors.newFixedThreadPool(6);
 
   }
 
@@ -1279,8 +1328,8 @@ public class OrderSystemImpl implements OrderSystem {
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
 
-//    if (true)
-//      return;
+    if (true)
+      return;
 
     // 用例
 
@@ -1313,7 +1362,8 @@ public class OrderSystemImpl implements OrderSystem {
 
 
 
-    /*
+
+    start = System.currentTimeMillis();
     String goodid = "al-814a-e3bba7062bdd";
     String salerid = "ay-9f78-e1fe3f5fb5ce";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
@@ -1324,13 +1374,8 @@ public class OrderSystemImpl implements OrderSystem {
     querykeys.add("buyerid");
     querykeys.add("a_o_9238");
 
-    Iterator<Result> it = os.queryOrdersBySaler(salerid, goodid, querykeys);
+    it = os.queryOrdersBySaler(salerid, goodid, querykeys);
     int count =0;
-//    while (it.hasNext()) {
-//      System.out.println(it.next());
-//      count++;
-//    }
-//    System.out.println(count);
     while (it.hasNext())
     {
       System.out.println(it.next());
@@ -1338,27 +1383,14 @@ public class OrderSystemImpl implements OrderSystem {
       count++;
     }
      System.out.println(count);
+     System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
 
-//     goodid = "al-9c4b-d5d5da969170";
-//     salerid = "tm-aff2-7a1793da34da";
-//     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
-//     querykeys  = new ArrayList<String>();
-//     querykeys.add("goodid");
-     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
-     count =0;
-    while (it.hasNext())
-    {
-      System.out.println(it.next());
-      count++;
-    }
-    System.out.println(count);
-    */
 //
 //
 //
 //
 
-    String goodid = "dd-8834-c6874b116c42";
+    goodid = "dd-8834-c6874b116c42";
     String attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
 
@@ -1895,21 +1927,6 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
     if (queryBySalerCache.get(cacheKey) == null) {
-//      System.out.println("*****query saler by id " + salerid);
-//      System.out.println("*****query goodid by id " + goodid);
-
-
-
-//      Row queryStart = new Row();
-//      queryStart.putKV("goodid", goodid);
-//      queryStart.putKV("orderid", Long.MIN_VALUE);
-//
-//      Row queryEnd = new Row();
-//      queryEnd.putKV("goodid", goodid);
-//      queryEnd.putKV("orderid", Long.MAX_VALUE);
-
-
-//      String suffixIndexFile = Utils.getGoodSuffix(goodid);
       int goodindex = Utils.FNVHash1(goodid);
 
       try {
@@ -2011,18 +2028,6 @@ public class OrderSystemImpl implements OrderSystem {
     }
 //
     if (sumOrderCache.get(cacheKey) == null) {
-
-//      System.out.println("***** query the sum of some keys in goodid : " + goodid + " key :" + key);
-
-//      Row queryStart = new Row();
-//      queryStart.putKV("goodid", goodid);
-//      queryStart.putKV("orderid", Long.MIN_VALUE);
-//      Row queryEnd = new Row();
-//      queryEnd.putKV("goodid", goodid);
-//      queryEnd.putKV("orderid", Long.MAX_VALUE);
-
-
-//      String suffixIndexFile = Utils.getGoodSuffix(goodid);
 
       int goodindex = Utils.FNVHash1(goodid);
 
