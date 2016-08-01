@@ -1,3 +1,4 @@
+
 package com.alibaba.middleware.race.data;
 
 import com.alibaba.middleware.race.OrderSystemImpl;
