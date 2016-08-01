@@ -3,10 +3,7 @@ package com.alibaba.middleware.race.utils;
 
 import com.alibaba.middleware.race.OrderSystemImpl;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * Created by Liberatorqjw on 2016/7/20.
@@ -72,7 +69,7 @@ public class Utils {
         hash += hash << 3;
         hash ^= hash >> 17;
         hash += hash << 5;
-        return Math.abs(hash % 5120);
+        return Math.abs(hash % 4096);
     }
 
     public static void  main(String[] args)
@@ -80,7 +77,35 @@ public class Utils {
         long startTime = System.currentTimeMillis();
         int hashcode = FNVHash1("al-aca4-93f110a11f1b");
         System.out.println(hashcode);
-        System.out.println(System.currentTimeMillis()- startTime);
+        System.out.println((System.currentTimeMillis()- startTime) + "ms" );
+
+        Comparator<Long> comparator = new Comparator<Long>() {
+            @Override
+            public int compare(Long o1, Long o2) {
+                if (o2 > o1)
+                    return -1;
+                else if (o2 < o1)
+                    return 1;
+                else
+                    return  0;
+            }
+        };
+
+        PriorityQueue<Long> queue = new PriorityQueue<Long>(11, comparator);
+        queue.offer((long) 10);
+        queue.offer((long) 6);
+        queue.offer((long) 5);
+        queue.offer((long) 4);
+        queue.offer((long) 1);
+        queue.offer((long) 2);
+        queue.offer((long) 5);
+
+        while (queue.size() > 0)
+        {
+            System.out.println(queue.poll());
+        }
+
+
 
     }
 }

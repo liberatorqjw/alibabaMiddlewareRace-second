@@ -495,7 +495,7 @@ public class OrderSystemImpl implements OrderSystem {
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
 //      List<Row> buyerList = new ArrayList<Row>();
       //存储有序的offset
-      Map<String, PriorityQueue<Long>> offsetMap = new HashMap<String, PriorityQueue<Long>>();
+      ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderBybuyer+"order/" + file);
@@ -546,13 +546,18 @@ public class OrderSystemImpl implements OrderSystem {
       {
         BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r", 1<<20); //1M的buffer
         String Realine = null;
+        System.out.println("filename :" + keyfilename);
+
         while (offsetMap.get(keyfilename).size() >0)
         {
+//          long start = System.currentTimeMillis();
           //到达索引位置
           bufAccsess.seek(offsetMap.get(keyfilename).poll());
           Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
           Row autalData = createKVMapFromLine(Realine);
           buyerQue.add(autalData);
+//          System.out.println("query buyer 扫描一条数据的用时:" + (System.currentTimeMillis() - start) + "ms");
+
         }
         bufAccsess.close();
       }
@@ -686,7 +691,7 @@ public class OrderSystemImpl implements OrderSystem {
         }
       };
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
-      Map<String, PriorityQueue<Long>> offsetMap = new HashMap<String, PriorityQueue<Long>>();
+      ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderByGood+"order/" + file);
@@ -749,12 +754,17 @@ public class OrderSystemImpl implements OrderSystem {
       {
         BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
         String realLine = null;
+        System.out.println("filename : " + RealFilename);
+
         while (offsetMap.get(RealFilename).size() >0)
         {
+//          long start = System.currentTimeMillis();
           bufAccess.seek(offsetMap.get(RealFilename).poll());
           realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
           Row autalData = createKVMapFromLine(realLine);
           goodQue.add(autalData);
+
+//          System.out.println("query saler 一条的用时: " + (System.currentTimeMillis() - start) + "ms");
         }
         bufAccess.close();
       }
@@ -793,31 +803,14 @@ public class OrderSystemImpl implements OrderSystem {
       }
       };
       List<Row> goodlist =new ArrayList<Row>();
-      Map<String, PriorityQueue<Long>> offsetMap = new HashMap<String, PriorityQueue<Long>>();
+      ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
       BufferedReader bfr = createReader(UtilsDataStorge.storeFolderOrderByGood+"order/" + file);
       try {
-        //int linecount =0;
+
         String line = bfr.readLine();
-        /*
-        while (line != null) {
-          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
-          //这个函数是由子类实现的
-          if (kvMap.get("goodid").valueAsString().equals(goodid))
-          {
-            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
-            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
-            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
-            goodQue.add(autalData);
-          }
-
-          //读取下一行
-          line = bfr.readLine();
-          //linecount +=1;
-        }
-        */
         while (line != null) {
 //          //这个函数是由子类实现的
 
@@ -857,9 +850,11 @@ public class OrderSystemImpl implements OrderSystem {
       {
         BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
         String realLine = null;
-        while (offsetMap.get(RealFilename).size() >0)
+        PriorityQueue<Long> itemQueue = offsetMap.get(RealFilename);
+
+        while (itemQueue.size() >0)
         {
-          bufAccess.seek(offsetMap.get(RealFilename).poll());
+          bufAccess.seek(itemQueue.poll());
           realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
           Row autalData = createKVMapFromLine(realLine);
           goodlist.add(autalData);
@@ -1328,8 +1323,8 @@ public class OrderSystemImpl implements OrderSystem {
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
 
-    if (true)
-      return;
+//    if (true)
+//      return;
 
     // 用例
 
@@ -1352,9 +1347,9 @@ public class OrderSystemImpl implements OrderSystem {
     start = System.currentTimeMillis();
     System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
     Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
-    while (it.hasNext()) {
-      System.out.println(it.next());
-    }
+//    while (it.hasNext()) {
+//      System.out.println(it.next());
+//    }
 
     end = System.currentTimeMillis();
     //long end = System.currentTimeMillis();
@@ -1376,12 +1371,12 @@ public class OrderSystemImpl implements OrderSystem {
 
     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
     int count =0;
-    while (it.hasNext())
-    {
-      System.out.println(it.next());
-
-      count++;
-    }
+//    while (it.hasNext())
+//    {
+//      System.out.println(it.next());
+//
+//      count++;
+//    }
      System.out.println(count);
      System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
 
@@ -1915,6 +1910,8 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
 
+    long start = System.currentTimeMillis();
+
     PriorityQueue<Row> orderDataSortedBySalerQueue = null;
     List<Row> tmpQueue = new ArrayList<Row>();
 
@@ -2021,6 +2018,8 @@ public class OrderSystemImpl implements OrderSystem {
     }
 
 //    PriorityQueue<Row> orderDataSortedByGoodQueue = null;
+    long start = System.currentTimeMillis();
+
     List<Row> goodList = null;
     String cacheKey = goodid;
     if (key != null) {
@@ -2043,24 +2042,15 @@ public class OrderSystemImpl implements OrderSystem {
 
       sumOrderCache.put(cacheKey, goodList);
 
-//      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
-//        return null;
-//      }
+      if (goodList == null || goodList.size() < 1) {
+        return null;
+      }
 
 
     }
     else
     {
-      /*
-      orderDataSortedByGoodQueue = (PriorityQueue<Row>)sumOrderCache.get(cacheKey);
 
-//      Utils.PrintCache(sumOrderCache, "sumorder");
-      System.out.println("######sum get from the cache the size is " + orderDataSortedByGoodQueue.size());
-
-      if (orderDataSortedByGoodQueue == null || orderDataSortedByGoodQueue.size() < 1) {
-        return null;
-      }
-     */
       System.out.println("get the sum from the cache");
       goodList = (List<Row>) sumOrderCache.get(cacheKey);
       if (goodList == null || goodList.size() < 1) {
@@ -2080,6 +2070,7 @@ public class OrderSystemImpl implements OrderSystem {
       allData.add(createResultFromOrderData(sumit.next(), queryingKeys));
     }
 
+    System.out.println("查询sum of good :" + (System.currentTimeMillis() - start) + "ms");
 //    while (orderDataSortedByGoodQueue.size() > 0){
 //
 //      allData.add(createResultFromOrderData(orderDataSortedByGoodQueue.poll(), queryingKeys));
