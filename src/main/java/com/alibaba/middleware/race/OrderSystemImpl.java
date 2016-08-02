@@ -2076,7 +2076,7 @@ public class OrderSystemImpl implements OrderSystem {
 //    }
     allData = goodList;
 
-    System.out.println("查询sum of good :" + (System.currentTimeMillis() - start) + "ms");
+    System.out.println("search sum of good :" + (System.currentTimeMillis() - start) + "ms");
 //    while (orderDataSortedByGoodQueue.size() > 0){
 //
 //      allData.add(createResultFromOrderData(orderDataSortedByGoodQueue.poll(), queryingKeys));
