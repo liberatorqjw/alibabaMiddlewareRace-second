@@ -178,9 +178,10 @@ public class OperationFiles {
         if (flag ==0)
         {
             Collection<BufferedWriter> goodfilesOut = UtilsDataStorge.goodFileswriterMap.values();
-            for (BufferedWriter bout: goodfilesOut)
+            for (BufferedWriter bout: goodfilesOut) {
+                bout.flush();
                 bout.close();
-
+            }
             Collection<FileWriter> goodwriter = UtilsDataStorge.goodFileMap.values();
             for (FileWriter goodf : goodwriter)
                 goodf.close();
@@ -190,15 +191,20 @@ public class OperationFiles {
         else if(flag == 1)
         {
             Collection<BufferedWriter> orderfilesOut = UtilsDataStorge.orderFileswriterMap.values();
-            for (BufferedWriter bout: orderfilesOut)
+            for (BufferedWriter bout: orderfilesOut) {
+                bout.flush();
                 bout.close();
+            }
             orderfilesOut = UtilsDataStorge.orderbuyerFileswriterMap.values();
-            for (BufferedWriter bout: orderfilesOut)
+            for (BufferedWriter bout: orderfilesOut) {
+                bout.flush();
                 bout.close();
+            }
             orderfilesOut = UtilsDataStorge.ordergoodFileswriterMap.values();
-            for (BufferedWriter bout: orderfilesOut)
+            for (BufferedWriter bout: orderfilesOut) {
+               bout.flush();
                 bout.close();
-
+            }
             Collection<FileWriter> orderfile = UtilsDataStorge.orderFileMap.values();
             for (FileWriter bout: orderfile)
                 bout.close();
@@ -214,9 +220,10 @@ public class OperationFiles {
         //buyer
         else {
             Collection<BufferedWriter> buyerfilesOut = UtilsDataStorge.buyerFileswriterMap.values();
-            for (BufferedWriter bout: buyerfilesOut)
+            for (BufferedWriter bout: buyerfilesOut) {
+                bout.flush();
                 bout.close();
-
+            }
             Collection<FileWriter> buyerfile = UtilsDataStorge.buyerFileMap.values();
             for (FileWriter bout: buyerfile)
                 bout.close();
