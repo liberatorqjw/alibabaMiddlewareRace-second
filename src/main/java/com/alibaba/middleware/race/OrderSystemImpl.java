@@ -541,7 +541,7 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
       //全部的索引读取结束以后，开始读取真实的原始数据
-      CountDownLatch latch = new CountDownLatch(offsetMap.size());
+      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
 
       for (String keyfilename: offsetMap.keySet())
       {
@@ -724,7 +724,7 @@ public class OrderSystemImpl implements OrderSystem {
         bfr.close();
       }
 
-      CountDownLatch latch = new CountDownLatch(offsetMap.size());
+      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
 
       //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
@@ -810,7 +810,6 @@ public class OrderSystemImpl implements OrderSystem {
               offsetMap.get(filename).offer(offset);
             }
 
-
           }
 
           //读取下一行
@@ -821,7 +820,7 @@ public class OrderSystemImpl implements OrderSystem {
         bfr.close();
       }
 
-      CountDownLatch latch = new CountDownLatch(offsetMap.size());
+      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
 
 //      //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
@@ -1414,11 +1413,11 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     start = System.currentTimeMillis();
-    String goodid = "aye-91a4-4cef71053f97";
-    String salerid = "wx-8a36-9bbc545635e7";
+    String goodid = "al-bba5-9856daeafce1";
+    String salerid = "tm-bad2-ec455f2bcbc0";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
     List<String> querykeys  = new ArrayList<String>();
-    querykeys.add("contactphone");
+    querykeys.add("buyerid");
 //    querykeys.add("a_o_12490");
 //    querykeys.add("a_o_4082");
 //    querykeys.add("buyerid");
@@ -1435,8 +1434,8 @@ public class OrderSystemImpl implements OrderSystem {
      System.out.println(count);
      System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
 
-    goodid = "aye-9c37-838aa50d1f1e";
-    String attr = "a_g_5814";
+    goodid = "al-89e7-f743b7a39080";
+    String attr = "a_b_11255";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
 
     start = System.currentTimeMillis();
@@ -1444,8 +1443,8 @@ public class OrderSystemImpl implements OrderSystem {
     end = System.currentTimeMillis();
     System.out.println("sum sonst of the time is " + (end - start));
 
-    goodid = "dd-941e-7fc422e8afc6";
-    attr = "a_b_31770";
+    goodid = "aye-ac59-482600706e59";
+    attr = "a_b_22724";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     System.out.println(os.sumOrdersByGood(goodid, attr));
 
