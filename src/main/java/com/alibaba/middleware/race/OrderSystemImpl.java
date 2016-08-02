@@ -546,7 +546,7 @@ public class OrderSystemImpl implements OrderSystem {
       {
         BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r", 1<<20); //1M的buffer
         String Realine = null;
-        System.out.println("filename :" + keyfilename);
+//        System.out.println("filename :" + keyfilename);
 
         while (offsetMap.get(keyfilename).size() >0)
         {
@@ -754,7 +754,7 @@ public class OrderSystemImpl implements OrderSystem {
       {
         BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
         String realLine = null;
-        System.out.println("filename : " + RealFilename);
+//        System.out.println("filename : " + RealFilename);
 
         while (offsetMap.get(RealFilename).size() >0)
         {
@@ -780,29 +780,22 @@ public class OrderSystemImpl implements OrderSystem {
      * @return
      * @throws IOException
      */
-    public List<Row> handleSumGoodRowList(String file, List<String> comparekeys, String goodid) throws IOException {
+    public List<ResultImpl> handleSumGoodRowList(String file, HashSet<String> comparekeys, String goodid) throws IOException {
 
 
 
       Comparator<Long> offsetCompare = new Comparator<Long>() {
         @Override
         public int compare(Long o1, Long o2){
-          if(o2 > o1)
-        {
-          return -1;
-        }
-        else if(o2 < o1)
-        {
-          return 1;
-        }
-        else
-        {
-          return 0;
-        }
-
+          if (o2 > o1)
+            return -1;
+          else if (o2 < o1)
+            return 1;
+          else
+            return  0;
       }
       };
-      List<Row> goodlist =new ArrayList<Row>();
+      List<ResultImpl> goodlist =new ArrayList<ResultImpl>();
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
@@ -857,7 +850,9 @@ public class OrderSystemImpl implements OrderSystem {
           bufAccess.seek(itemQueue.poll());
           realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
           Row autalData = createKVMapFromLine(realLine);
-          goodlist.add(autalData);
+
+//          goodlist.add(autalData);
+          goodlist.add(createResultFromOrderData(autalData, comparekeys));
         }
         bufAccess.close();
       }
@@ -1667,6 +1662,9 @@ public class OrderSystemImpl implements OrderSystem {
       for (String key : keys)
         cacheKey += "_" + key;
     }
+
+    long start = System.currentTimeMillis();
+
     if (queryOrderCache.get(cacheKey) == null) {
 
 
@@ -1710,6 +1708,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     Result result = createResultFromOrderData(orderData, createQueryKeys(keys));
 
+    System.out.println("query1 :" +(System.currentTimeMillis() - start));
     return result;
   }
 
@@ -1798,6 +1797,8 @@ public class OrderSystemImpl implements OrderSystem {
     }
 
 
+    long start = System.currentTimeMillis();
+
     PriorityQueue<Row> buyerQUeue = null;
     List<Row> tmpQueue = new ArrayList<Row>();
 
@@ -1851,7 +1852,7 @@ public class OrderSystemImpl implements OrderSystem {
     }
     final PriorityQueue<Row> orderIndexs =buyerQUeue;
 //    final List<Row> orderIndexs = tmpQueue;
-
+    System.out.println("query2 :" + (System.currentTimeMillis() - start));
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
 
       Queue<Row> o =orderIndexs;
@@ -1958,6 +1959,8 @@ public class OrderSystemImpl implements OrderSystem {
 
     final  PriorityQueue<Row> orderIndexsBySaler = orderDataSortedBySalerQueue;
 
+    System.out.println("query3 :" +(System.currentTimeMillis() - start));
+
 //    final  List<Row> orderIndexsBySaler = tmpQueue;
 
     Iterator<OrderSystem.Result> result =  new Iterator<OrderSystem.Result>() {
@@ -2020,12 +2023,15 @@ public class OrderSystemImpl implements OrderSystem {
 //    PriorityQueue<Row> orderDataSortedByGoodQueue = null;
     long start = System.currentTimeMillis();
 
-    List<Row> goodList = null;
+    List<ResultImpl> goodList = null;
     String cacheKey = goodid;
     if (key != null) {
       cacheKey += "_" + key;
     }
-//
+
+    HashSet<String> queryingKeys = new HashSet<String>();
+    queryingKeys.add(key);
+
     if (sumOrderCache.get(cacheKey) == null) {
 
       int goodindex = Utils.FNVHash1(goodid);
@@ -2034,7 +2040,7 @@ public class OrderSystemImpl implements OrderSystem {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
 //        orderDataSortedByGoodQueue = DIF.handleGoodRowQueue(OrderSystemImpl.orderGoodOrderIdFile + goodindex + ".txt", comparableKeysOrderingByGoodOrderId, goodid);
 //        orderDataSortedByGoodQueue = queryOrderBySalerViolence(goodid);
-        goodList = DIF.handleSumGoodRowList(OrderSystemImpl.orderGoodOrderIdFile + goodindex + ".txt", comparableKeysOrderingByGoodOrderId, goodid);
+        goodList = DIF.handleSumGoodRowList(OrderSystemImpl.orderGoodOrderIdFile + goodindex + ".txt", queryingKeys, goodid);
 
       } catch (IOException e) {
         e.printStackTrace();
@@ -2052,23 +2058,23 @@ public class OrderSystemImpl implements OrderSystem {
     {
 
       System.out.println("get the sum from the cache");
-      goodList = (List<Row>) sumOrderCache.get(cacheKey);
+      goodList = (List<ResultImpl>) sumOrderCache.get(cacheKey);
       if (goodList == null || goodList.size() < 1) {
         return null;
       }
 
     }
-    HashSet<String> queryingKeys = new HashSet<String>();
-    queryingKeys.add(key);
+
     List<ResultImpl> allData = new ArrayList<ResultImpl>();
 
 //    Iterator<Row> sumit = orderDataSortedByGoodQueue.iterator();
-    Iterator<Row> sumit = goodList.iterator();
-
-    while (sumit.hasNext())
-    {
-      allData.add(createResultFromOrderData(sumit.next(), queryingKeys));
-    }
+//    Iterator<Row> sumit = goodList.iterator();
+//
+//    while (sumit.hasNext())
+//    {
+//      allData.add(createResultFromOrderData(sumit.next(), queryingKeys));
+//    }
+    allData = goodList;
 
     System.out.println("查询sum of good :" + (System.currentTimeMillis() - start) + "ms");
 //    while (orderDataSortedByGoodQueue.size() > 0){
@@ -2096,25 +2102,6 @@ public class OrderSystemImpl implements OrderSystem {
     } catch (TypeException e) {
     }
 
-    // accumulate as double
-    try {
-      boolean hasValidData = false;
-      double sum = 0;
-      for (ResultImpl r : allData) {
-        KeyValue kv = r.get(key);
-        if (kv != null) {
-          sum += kv.valueAsDouble();
-          hasValidData = true;
-        }
-      }
-      if (hasValidData) {
-        KV result = new KV(key, Double.toString(sum));
-//        UtilsDataStorge.sumOrdersByGoodCache.put(cacheKey, result);
-        return result;
-
-      }
-    } catch (TypeException e) {
-    }
 
     return null;
   }

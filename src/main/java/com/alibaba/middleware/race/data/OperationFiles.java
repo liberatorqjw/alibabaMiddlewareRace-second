@@ -19,12 +19,12 @@ public class OperationFiles {
      */
     public static void CreateFileWriter()
     {
-        String[] suffix = {"a","b","c","d","e","f","g","h","i","j","k","l", "m", "n", "o", "p", "q",
-                "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8",
-                "9"};
-
-        String[] ordersuffix = {"10","11","12","13","14","15","16","17","18","19","0", "1", "2", "3", "4", "5", "6", "7", "8",
-                "9"};
+//        String[] suffix = {"a","b","c","d","e","f","g","h","i","j","k","l", "m", "n", "o", "p", "q",
+//                "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8",
+//                "9"};
+//
+//        String[] ordersuffix = {"10","11","12","13","14","15","16","17","18","19","0", "1", "2", "3", "4", "5", "6", "7", "8",
+//                "9"};
         //后缀
         String sffix = ".txt";
 
@@ -69,7 +69,7 @@ public class OperationFiles {
 
 
 
-        System.out.println(suffix.length);
+//        System.out.println(suffix.length);
         try {
 
             for (int i = 0; i<4096; i++)
