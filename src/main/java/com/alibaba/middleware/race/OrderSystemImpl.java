@@ -855,7 +855,7 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
                  String content = "goodid:" + goodid+ "\t" + "address:"+ address.trim();
 
-                  int index = Utils.FNVHash1(goodid);
+                  int index = Utils.FNVHash1Order(goodid);
 //                  System.out.println("good的文件索引: " + index);
                   //在索引文件中创建索引记录
                   outputWriters.get(index).write(content + "\n");
@@ -924,7 +924,7 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
 
                   String content = "buyerid:" + buyerid + "\t"  + "address:" + address.trim() ;
-                  int index = Utils.FNVHash1(buyerid);
+                  int index = Utils.FNVHash1Order(buyerid);
 //                  System.out.println("buyer的文件索引: " + index);
                   outputWriters.get(index).write(content+ "\n");
                 } catch (Exception e) {
@@ -1023,9 +1023,9 @@ public class OrderSystemImpl implements OrderSystem {
 
           //order
             try {
-               int indexorder = Utils.FNVHash1Order(orderid);
-               int indexOrderBuyer = Utils.FNVHash1Order(buyerid);
-               int indexOrderGood = Utils.FNVHash1Order(goodid);
+               int indexorder = Utils.FNVHash1(orderid);
+               int indexOrderBuyer = Utils.FNVHash1(buyerid);
+               int indexOrderGood = Utils.FNVHash1(goodid);
               String contentOrder = "orderid:" + orderid + "\t"  + "address:" + address.trim() ;
               String contentOrderBuyer = "buyerid:" + buyerid + "\t" +"createtime:" + createtime + "\t" + "address:" + address.trim();
               String contentOrderGood = "goodid:" + goodid + "\t"  + "address:" + address.trim();
@@ -1284,8 +1284,8 @@ public class OrderSystemImpl implements OrderSystem {
     queryBySalerCache = new LRUCache<String, Object>(1000);
     sumOrderCache = new LRUCache<String, Object>(1000);
 
-    joinbuyerCache = new LRUCache<String, Row>(10000);
-    joingoodCache = new LRUCache<String, Row>(10000);
+    joinbuyerCache = new LRUCache<String, Row>(20000);
+    joingoodCache = new LRUCache<String, Row>(20000);
 
 //    testcache = new LRUCache<String, Object>(10000);
     service = Executors.newFixedThreadPool(10);
@@ -1677,7 +1677,7 @@ public class OrderSystemImpl implements OrderSystem {
       Row query = new Row();
       query.putKV("orderid", orderId);
 
-      int indexSuffix = Utils.FNVHash1Order(String.valueOf(orderId));
+      int indexSuffix = Utils.FNVHash1(String.valueOf(orderId));
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
 //        System.out.println("查询的文件:" + OrderSystemImpl.orderIdexFile + indexSuffix + ".txt");
@@ -1727,7 +1727,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (joinbuyerCache.get(buyerid) == null) {
 //      String suffix = Utils.getGoodSuffix(orderData.getKV("buyerid").valueAsString());
-      int buyerindex = Utils.FNVHash1(buyerid);
+      int buyerindex = Utils.FNVHash1Order(buyerid);
       //索引map
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -1747,7 +1747,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (joingoodCache.get(goodid) == null) {
 //      String suffixx = Utils.getGoodSuffix(orderData.getKV("goodid").valueAsString());
-      int goodindex = Utils.FNVHash1(goodid);
+      int goodindex = Utils.FNVHash1Order(goodid);
       //索引map
       try {
 
@@ -1816,7 +1816,7 @@ public class OrderSystemImpl implements OrderSystem {
     if (queryByBuyerCache.get(cacheKey) == null) {
 
 
-      int buyerindex = Utils.FNVHash1Order(buyerid);
+      int buyerindex = Utils.FNVHash1(buyerid);
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -1911,7 +1911,7 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
     if (queryBySalerCache.get(cacheKey) == null) {
-      int goodindex = Utils.FNVHash1Order(goodid);
+      int goodindex = Utils.FNVHash1(goodid);
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -2011,7 +2011,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (sumOrderCache.get(cacheKey) == null) {
 
-      int goodindex = Utils.FNVHash1Order(goodid);
+      int goodindex = Utils.FNVHash1(goodid);
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();

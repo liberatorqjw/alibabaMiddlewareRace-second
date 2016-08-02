@@ -72,7 +72,7 @@ public class OperationFiles {
 //        System.out.println(suffix.length);
         try {
 
-            for (int i = 0; i<4096; i++)
+            for (int i = 0; i<8192; i++)
             {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolderOrder + "buyer/" + OrderSystemImpl.buyerIndexFile + i + sffix , true);
                 BufferedWriter bfw = new BufferedWriter(suffixWriter);
@@ -102,7 +102,7 @@ public class OperationFiles {
 
             }
 
-            for (int i =0; i< 8192; i++)
+            for (int i =0; i< 4096; i++)
             {
                 FileWriter suffixorderBuyer = new FileWriter(UtilsDataStorge.storeFolderOrderBybuyer + "order/" + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + i+ sffix, true);
                 BufferedWriter bfwbuyer = new BufferedWriter(suffixorderBuyer);
