@@ -492,6 +492,8 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       };
+      ExecutorService service = Executors.newFixedThreadPool(3);
+
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
 //      List<Row> buyerList = new ArrayList<Row>();
       //存储有序的offset
@@ -539,26 +541,35 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
       //全部的索引读取结束以后，开始读取真实的原始数据
+      CountDownLatch latch = new CountDownLatch(offsetMap.size());
+
       for (String keyfilename: offsetMap.keySet())
       {
-        BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r", 1<<20); //1M的buffer
-        String Realine = null;
-//        System.out.println("filename :" + keyfilename);
-
-        while (offsetMap.get(keyfilename).size() >0)
-        {
-//          long start = System.currentTimeMillis();
-          //到达索引位置
-          bufAccsess.seek(offsetMap.get(keyfilename).poll());
-          Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
-          Row autalData = createKVMapFromLine(Realine);
-          buyerQue.add(autalData);
-//          System.out.println("query buyer 扫描一条数据的用时:" + (System.currentTimeMillis() - start) + "ms");
-
-        }
-        bufAccsess.close();
+//        BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r", 1<<20); //1M的buffer
+//        String Realine = null;
+////        System.out.println("filename :" + keyfilename);
+//
+//        while (offsetMap.get(keyfilename).size() >0)
+//        {
+////          long start = System.currentTimeMillis();
+//          //到达索引位置
+//          bufAccsess.seek(offsetMap.get(keyfilename).poll());
+//          Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
+//          Row autalData = createKVMapFromLine(Realine);
+//          buyerQue.add(autalData);
+////          System.out.println("query buyer 扫描一条数据的用时:" + (System.currentTimeMillis() - start) + "ms");
+//
+//        }
+//        bufAccsess.close();
+        service.execute(new ReadSourceOrder(keyfilename, offsetMap.get(keyfilename), buyerQue, latch));
       }
 
+      try {
+        latch.await();
+        service.shutdown();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       return buyerQue;
     }
     /**
@@ -672,6 +683,8 @@ public class OrderSystemImpl implements OrderSystem {
 
         }
       };
+      ExecutorService service = Executors.newFixedThreadPool(4);
+
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
@@ -711,26 +724,35 @@ public class OrderSystemImpl implements OrderSystem {
         bfr.close();
       }
 
+      CountDownLatch latch = new CountDownLatch(offsetMap.size());
+
       //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
       {
-        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
-        String realLine = null;
-//        System.out.println("filename : " + RealFilename);
+//        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
+//        String realLine = null;
+////        System.out.println("filename : " + RealFilename);
+//
+//        while (offsetMap.get(RealFilename).size() >0)
+//        {
+////          long start = System.currentTimeMillis();
+//          bufAccess.seek(offsetMap.get(RealFilename).poll());
+//          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
+//          Row autalData = createKVMapFromLine(realLine);
+//          goodQue.add(autalData);
+//
+////          System.out.println("query saler 一条的用时: " + (System.currentTimeMillis() - start) + "ms");
+//        }
+//        bufAccess.close();
+        service.execute(new ReadSourceOrder(RealFilename, offsetMap.get(RealFilename), goodQue, latch));
 
-        while (offsetMap.get(RealFilename).size() >0)
-        {
-//          long start = System.currentTimeMillis();
-          bufAccess.seek(offsetMap.get(RealFilename).poll());
-          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
-          Row autalData = createKVMapFromLine(realLine);
-          goodQue.add(autalData);
-
-//          System.out.println("query saler 一条的用时: " + (System.currentTimeMillis() - start) + "ms");
-        }
-        bufAccess.close();
       }
-
+      try {
+        latch.await();
+        service.shutdown();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       return goodQue;
     }
 
@@ -757,6 +779,8 @@ public class OrderSystemImpl implements OrderSystem {
             return  0;
       }
       };
+      ExecutorService service  = Executors.newFixedThreadPool(3);
+
       List<ResultImpl> goodlist =new ArrayList<ResultImpl>();
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
@@ -797,23 +821,32 @@ public class OrderSystemImpl implements OrderSystem {
         bfr.close();
       }
 
+      CountDownLatch latch = new CountDownLatch(offsetMap.size());
+
 //      //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
       {
-        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
-        String realLine = null;
-
-        while (offsetMap.get(RealFilename).size() >0)
-        {
-          bufAccess.seek(offsetMap.get(RealFilename).poll());
-          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
-          Row autalData = createKVMapFromLine(realLine);
-//          goodlist.add(autalData);
-          goodlist.add(createResultFromOrderData(autalData, comparekeys));
-        }
-        bufAccess.close();
+//        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
+//        String realLine = null;
+//
+//        while (offsetMap.get(RealFilename).size() >0)
+//        {
+//          bufAccess.seek(offsetMap.get(RealFilename).poll());
+//          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
+//          Row autalData = createKVMapFromLine(realLine);
+////          goodlist.add(autalData);
+//          goodlist.add(createResultFromOrderData(autalData, comparekeys));
+//        }
+//        bufAccess.close();
+        service.execute(new ReadSourceOrderTolist(RealFilename, offsetMap.get(RealFilename), goodlist, latch, comparekeys));
       }
 
+      try {
+        latch.await();
+        service.shutdown();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       return goodlist;
     }
   }
@@ -1070,6 +1103,106 @@ public class OrderSystemImpl implements OrderSystem {
       UtilsDataStorge.countFile.incrementAndGet();
     }
   }
+
+  private class ReadSourceOrder implements Runnable
+  {
+
+    private String filename;
+    private PriorityQueue<Long> offsetQueue;
+    private PriorityQueue<Row> queue;
+    private CountDownLatch latch;
+
+    public ReadSourceOrder(String filename, PriorityQueue<Long> offsetQueue, PriorityQueue<Row> queue, CountDownLatch latch) {
+      this.filename = filename;
+      this.offsetQueue = offsetQueue;
+      this.queue = queue;
+      this.latch = latch;
+    }
+
+    @Override
+    public void run() {
+
+      BufferedRandomAccessFile bufAccsess = null; //1M的buffer
+      try {
+        bufAccsess = new BufferedRandomAccessFile(filename, "r", 1<<20);
+
+      String Realine = null;
+
+      while (offsetQueue.size() >0)
+      {
+
+        bufAccsess.seek(offsetQueue.poll());
+        Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
+        Row autalData = createKVMapFromLine(Realine);
+        queue.add(autalData);
+
+      }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try {
+        bufAccsess.close();
+        latch.countDown();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private class ReadSourceOrderTolist implements Runnable
+  {
+
+    private String filename;
+    private PriorityQueue<Long> offsetQueue;
+    private List<ResultImpl> queue;
+    private CountDownLatch latch;
+    HashSet<String> querykeys;
+
+    public ReadSourceOrderTolist(String filename, PriorityQueue<Long> offsetQueue, List<ResultImpl> queue, CountDownLatch latch, HashSet<String> querykeys) {
+      this.filename = filename;
+      this.offsetQueue = offsetQueue;
+      this.queue = queue;
+      this.latch = latch;
+      this.querykeys = querykeys;
+    }
+
+    @Override
+    public void run() {
+
+      BufferedRandomAccessFile bufAccsess = null; //1M的buffer
+      try {
+        bufAccsess = new BufferedRandomAccessFile(filename, "r", 1<<20);
+
+
+        String realLine = null;
+        while (offsetQueue.size() >0)
+        {
+
+            bufAccsess.seek(offsetQueue.poll());
+            realLine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
+            Row autalData = createKVMapFromLine(realLine);
+            queue.add(createResultFromOrderData(autalData, querykeys));
+
+        }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try {
+        bufAccsess.close();
+        latch.countDown();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
   /**
    *  多线程构建树
    */
@@ -1281,31 +1414,26 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     start = System.currentTimeMillis();
-    String goodid = "al-814a-e3bba7062bdd";
-    String salerid = "ay-9f78-e1fe3f5fb5ce";
+    String goodid = "aye-91a4-4cef71053f97";
+    String salerid = "wx-8a36-9bbc545635e7";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
     List<String> querykeys  = new ArrayList<String>();
-    querykeys.add("good_name");
-    querykeys.add("a_o_12490");
-    querykeys.add("a_o_4082");
-    querykeys.add("buyerid");
-    querykeys.add("a_o_9238");
+    querykeys.add("contactphone");
+//    querykeys.add("a_o_12490");
+//    querykeys.add("a_o_4082");
+//    querykeys.add("buyerid");
+//    querykeys.add("a_o_9238");
 
     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
     count =0;
-//    while (it.hasNext())
-//    {
-//      System.out.println(it.next());
-//
-//      count++;
-//    }
+    while (it.hasNext())
+    {
+      System.out.println(it.next());
+
+      count++;
+    }
      System.out.println(count);
      System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
-
-//
-//
-//
-//
 
     goodid = "aye-9c37-838aa50d1f1e";
     String attr = "a_g_5814";
@@ -1316,8 +1444,8 @@ public class OrderSystemImpl implements OrderSystem {
     end = System.currentTimeMillis();
     System.out.println("sum sonst of the time is " + (end - start));
 
-    goodid = "al-9c4c-ac9ed4b6ad35";
-    attr = "offprice";
+    goodid = "dd-941e-7fc422e8afc6";
+    attr = "a_b_31770";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     System.out.println(os.sumOrdersByGood(goodid, attr));
 
