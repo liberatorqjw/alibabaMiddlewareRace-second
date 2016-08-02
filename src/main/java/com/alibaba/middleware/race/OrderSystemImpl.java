@@ -492,9 +492,12 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       };
-      ExecutorService service = Executors.newFixedThreadPool(16);
+      ExecutorService service = Executors.newFixedThreadPool(8);
 
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
+      List<Row> buyerList = new ArrayList<Row>();
+      buyerList = Collections.synchronizedList(buyerList);
+
 //      List<Row> buyerList = new ArrayList<Row>();
       //存储有序的offset
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
@@ -545,28 +548,16 @@ public class OrderSystemImpl implements OrderSystem {
 
       for (String keyfilename: offsetMap.keySet())
       {
-//        BufferedRandomAccessFile bufAccsess = new BufferedRandomAccessFile(keyfilename, "r", 1<<20); //1M的buffer
-//        String Realine = null;
-////        System.out.println("filename :" + keyfilename);
-//
-//        while (offsetMap.get(keyfilename).size() >0)
-//        {
-////          long start = System.currentTimeMillis();
-//          //到达索引位置
-//          bufAccsess.seek(offsetMap.get(keyfilename).poll());
-//          Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
-//          Row autalData = createKVMapFromLine(Realine);
-//          buyerQue.add(autalData);
-////          System.out.println("query buyer 扫描一条数据的用时:" + (System.currentTimeMillis() - start) + "ms");
-//
-//        }
-//        bufAccsess.close();
-        service.execute(new ReadSourceOrder(keyfilename, offsetMap.get(keyfilename), buyerQue, latch));
+
+        service.execute(new ReadSourceOrder(keyfilename, offsetMap.get(keyfilename), buyerList, latch));
       }
 
       try {
         latch.await();
         service.shutdown();
+
+        for (Row buyerdata : buyerList)
+          buyerQue.add(buyerdata);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -683,9 +674,12 @@ public class OrderSystemImpl implements OrderSystem {
 
         }
       };
-      ExecutorService service = Executors.newFixedThreadPool(16);
+      ExecutorService service = Executors.newFixedThreadPool(8);
 
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
+      List<Row> goodlist = new ArrayList<Row>();
+      goodlist = Collections.synchronizedList(goodlist);
+
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
@@ -729,27 +723,17 @@ public class OrderSystemImpl implements OrderSystem {
       //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
       {
-//        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
-//        String realLine = null;
-////        System.out.println("filename : " + RealFilename);
-//
-//        while (offsetMap.get(RealFilename).size() >0)
-//        {
-////          long start = System.currentTimeMillis();
-//          bufAccess.seek(offsetMap.get(RealFilename).poll());
-//          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
-//          Row autalData = createKVMapFromLine(realLine);
-//          goodQue.add(autalData);
-//
-////          System.out.println("query saler 一条的用时: " + (System.currentTimeMillis() - start) + "ms");
-//        }
-//        bufAccess.close();
-        service.execute(new ReadSourceOrder(RealFilename, offsetMap.get(RealFilename), goodQue, latch));
+
+        service.execute(new ReadSourceOrder(RealFilename, offsetMap.get(RealFilename), goodlist, latch));
 
       }
       try {
         latch.await();
         service.shutdown();
+
+        for (Row gooddata : goodlist)
+          goodQue.add(gooddata);
+        
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -779,9 +763,10 @@ public class OrderSystemImpl implements OrderSystem {
             return  0;
       }
       };
-      ExecutorService service  = Executors.newFixedThreadPool(16);
+      ExecutorService service  = Executors.newFixedThreadPool(8);
 
       List<ResultImpl> goodlist =new ArrayList<ResultImpl>();
+      goodlist = Collections.synchronizedList(goodlist);
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
 
       //read the index file 读取指定的索引文件
@@ -1108,10 +1093,10 @@ public class OrderSystemImpl implements OrderSystem {
 
     private String filename;
     private PriorityQueue<Long> offsetQueue;
-    private PriorityQueue<Row> queue;
+    private List<Row> queue;
     private CountDownLatch latch;
 
-    public ReadSourceOrder(String filename, PriorityQueue<Long> offsetQueue, PriorityQueue<Row> queue, CountDownLatch latch) {
+    public ReadSourceOrder(String filename, PriorityQueue<Long> offsetQueue, List<Row> queue, CountDownLatch latch) {
       this.filename = filename;
       this.offsetQueue = offsetQueue;
       this.queue = queue;
