@@ -492,7 +492,7 @@ public class OrderSystemImpl implements OrderSystem {
 
 
       };
-      ExecutorService service = Executors.newFixedThreadPool(3);
+      ExecutorService service = Executors.newFixedThreadPool(16);
 
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
 //      List<Row> buyerList = new ArrayList<Row>();
@@ -683,7 +683,7 @@ public class OrderSystemImpl implements OrderSystem {
 
         }
       };
-      ExecutorService service = Executors.newFixedThreadPool(4);
+      ExecutorService service = Executors.newFixedThreadPool(16);
 
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
@@ -779,7 +779,7 @@ public class OrderSystemImpl implements OrderSystem {
             return  0;
       }
       };
-      ExecutorService service  = Executors.newFixedThreadPool(3);
+      ExecutorService service  = Executors.newFixedThreadPool(16);
 
       List<ResultImpl> goodlist =new ArrayList<ResultImpl>();
       ConcurrentHashMap<String, PriorityQueue<Long>> offsetMap = new ConcurrentHashMap<String, PriorityQueue<Long>>();
@@ -1323,7 +1323,7 @@ public class OrderSystemImpl implements OrderSystem {
     joingoodCache = new LRUCache<String, Row>(10000);
 
 //    testcache = new LRUCache<String, Object>(10000);
-    service = Executors.newFixedThreadPool(6);
+    service = Executors.newFixedThreadPool(10);
 
   }
 
@@ -1434,8 +1434,8 @@ public class OrderSystemImpl implements OrderSystem {
      System.out.println(count);
      System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
 
-    goodid = "al-89e7-f743b7a39080";
-    String attr = "a_b_11255";
+    goodid = "gd-b3f9-c60b355a54ce";
+    String attr = "a_g_28464";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
 
     start = System.currentTimeMillis();
@@ -1443,8 +1443,8 @@ public class OrderSystemImpl implements OrderSystem {
     end = System.currentTimeMillis();
     System.out.println("sum sonst of the time is " + (end - start));
 
-    goodid = "aye-ac59-482600706e59";
-    attr = "a_b_22724";
+    goodid = "aye-9cda-56d7ce06059d";
+    attr = "a_b_31770";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     System.out.println(os.sumOrdersByGood(goodid, attr));
 
