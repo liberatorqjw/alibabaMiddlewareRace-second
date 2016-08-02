@@ -599,22 +599,7 @@ public class OrderSystemImpl implements OrderSystem {
       try {
         //int linecount =0;
         String line = bfr.readLine();
-        /*
-        while (line != null) {
-          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
-          //这个函数是由子类实现的
-          if (kvMap.get("goodid").valueAsString().equals(goodid)) {
-            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
-            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
-            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
 
-            return autalData;
-          }
-          //读取下一行
-          line = bfr.readLine();
-          //linecount +=1;
-        }
-        */
         while (line != null) {
 
           //这个函数是由子类实现的
@@ -789,9 +774,6 @@ public class OrderSystemImpl implements OrderSystem {
             Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
             String filename = kvMap.getKV("address").valueAsString().split(",")[0];
             long offset =Long.valueOf(kvMap.getKV("address").valueAsString().split(",")[1]);
-//            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
-//            goodlist.add(createResultFromOrderData(autalData, comparekeys));
-////            goodlist.add(autalData);
             if (offsetMap.get(filename) == null)
             {
               PriorityQueue<Long> priorityQueue = new PriorityQueue<Long>(11, offsetCompare);
@@ -1239,16 +1221,29 @@ public class OrderSystemImpl implements OrderSystem {
     storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/disk2/");
     storeFolders.add("/media/qinjiawei/000C8D1A0003D585/prerun_data/disk3/");
 
+    int count =0;
+    for (String storge: storeFolders) {
 
+      if (count == 0)
+        UtilsDataStorge.storeFolderOrder = storge;
+      else if (count == 1)
+        UtilsDataStorge.storeFolderOrderBybuyer = storge;
+      else {
+        UtilsDataStorge.storeFolderOrderByGood = storge;
+        break;
+      }
+      count++;
+    }
 //    UtilsDataStorge.storeFolder = "/media/qinjiawei/000C8D1A0003D585/prerun_data/indexgood_buyer/";
     OrderSystem os = new OrderSystemImpl();
 
     long start = System.currentTimeMillis();
 
-    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
+    UtilsDataStorge.end = true;
 
 //    if (true)
 //      return;
@@ -1274,9 +1269,9 @@ public class OrderSystemImpl implements OrderSystem {
     start = System.currentTimeMillis();
     System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
     Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
-    while (it.hasNext()) {
-      System.out.println(it.next());
-    }
+//    while (it.hasNext()) {
+//      System.out.println(it.next());
+//    }
 
     end = System.currentTimeMillis();
     //long end = System.currentTimeMillis();
@@ -1297,13 +1292,13 @@ public class OrderSystemImpl implements OrderSystem {
     querykeys.add("a_o_9238");
 
     it = os.queryOrdersBySaler(salerid, goodid, querykeys);
-    int count =0;
-    while (it.hasNext())
-    {
-      System.out.println(it.next());
-
-      count++;
-    }
+    count =0;
+//    while (it.hasNext())
+//    {
+//      System.out.println(it.next());
+//
+//      count++;
+//    }
      System.out.println(count);
      System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
 
@@ -1312,8 +1307,8 @@ public class OrderSystemImpl implements OrderSystem {
 //
 //
 
-    goodid = "dd-8834-c6874b116c42";
-    String attr = "amount";
+    goodid = "aye-9c37-838aa50d1f1e";
+    String attr = "a_g_5814";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
 
     start = System.currentTimeMillis();
@@ -1321,20 +1316,11 @@ public class OrderSystemImpl implements OrderSystem {
     end = System.currentTimeMillis();
     System.out.println("sum sonst of the time is " + (end - start));
 
-    attr = "amount";
+    goodid = "al-9c4c-ac9ed4b6ad35";
+    attr = "offprice";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-    KeyValue sum = os.sumOrdersByGood(goodid, attr);
-    if (sum == null) {
-      System.out.println("由于该字段是布尔类型，返回值是null");
-    }
-    /*
-    attr = "foo";
-    System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-    sum = os.sumOrdersByGood(goodid, attr);
-    if (sum == null) {
-      System.out.println("由于该字段不存在，返回值是null");
-    }
-*/
+    System.out.println(os.sumOrdersByGood(goodid, attr));
+
   }
 
   private BufferedReader createReader(String file) throws FileNotFoundException {
@@ -1990,7 +1976,22 @@ public class OrderSystemImpl implements OrderSystem {
     } catch (TypeException e) {
     }
 
-
+    // accumulate as double
+    try {
+      boolean hasValidData = false;
+      double sum = 0;
+      for (ResultImpl r : allData) {
+        KeyValue kv = r.get(key);
+        if (kv != null) {
+          sum += kv.valueAsDouble();
+          hasValidData = true;
+        }
+      }
+      if (hasValidData) {
+        return new KV(key, Double.toString(sum));
+      }
+    } catch (TypeException e) {
+    }
     return null;
   }
 
