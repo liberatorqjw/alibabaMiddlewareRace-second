@@ -1076,34 +1076,15 @@ public class OrderSystemImpl implements OrderSystem {
         e.printStackTrace();
       }
       try {
-//        int linecount = 0;
-//        String line = bfr.readLine();
-//        String line = new String(bfr.readLine().getBytes("iso-8859-1"), "utf-8");
 
         String line = bfr.readLine();
         String address = null;
         long offset =0;
-//        int countLine =1;
-//        int rowlimit =600 * 10000 ; //20000 4.4M;  1.3G
-//        String filename = file.substring(file.lastIndexOf("/") +1);
-//        int serilizeNumber = 1;
-//        String newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
-//
-//        FileWriter sourceWriter = new FileWriter(newSourceFileName, true);
+//         long offset = UtilsDataStorge.offsetfile.get();
 
         while (line != null) {
 
-
-//          if (countLine % rowlimit == 0)
-//          {
-//            sourceWriter.close();
-//            serilizeNumber++;
-//            offset =0;
-//            newSourceFileName = UtilsDataStorge.storeFolderOrder + "source/" + filename + "." + serilizeNumber;
-//            sourceWriter = new FileWriter(newSourceFileName, true);
-//          }
-//          //写入新的文件中
-//          sourceWriter.write(new String(line.getBytes("iso-8859-1"), "utf-8") + "\n");
+//          UtilsDataStorge.orderFileswriterMap.get(40966).write(new String(line.getBytes("iso-8859-1"), "utf-8") + "\n");
           //记录处理过的order文件条数
           UtilsDataStorge.orderFileLines.incrementAndGet();
 
@@ -1117,10 +1098,10 @@ public class OrderSystemImpl implements OrderSystem {
 
           address = file.trim() + "," + String.valueOf(offset);
 //          address = newSourceFileName.trim() + "," + String.valueOf(offset);
+//          address = UtilsDataStorge.storeFolderOrder + "source/sourceorder" + "," + String.valueOf(UtilsDataStorge.offsetfile.get());
 
           //order
             try {
-
                int indexorder = Utils.FNVHash1(orderid);
                int indexOrderBuyer = Utils.FNVHash1(buyerid);
                int indexOrderGood = Utils.FNVHash1(goodid);
@@ -1143,6 +1124,7 @@ public class OrderSystemImpl implements OrderSystem {
 //          countLine ++;
         }
         //关闭新文件的写入操作
+//        bw.close();
 //        sourceWriter.close();
 
       }catch(Exception e)
@@ -1615,6 +1597,9 @@ public class OrderSystemImpl implements OrderSystem {
        try {
          service.shutdown();
          OperationFiles.closeFileWriter(1);
+//         UtilsDataStorge.orderFileswriterMap.get(40966).close();
+//         UtilsDataStorge.orderFileMap.get(40966).close();
+
          System.out.println("construct#############################order 文件关闭");
          System.out.println("在construct中完成了order构建, 总的order条目是：" + UtilsDataStorge.orderFileLines.get());
        } catch (IOException e) {

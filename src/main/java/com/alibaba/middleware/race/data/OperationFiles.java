@@ -30,11 +30,11 @@ public class OperationFiles {
 
         //创建文件夹
         //存储原始的order文件
-        File filesource = new File(UtilsDataStorge.storeFolderOrder + "source");
-        if (!filesource.exists() && !filesource.isDirectory())
-        {
-            filesource.mkdir();
-        }
+//        File filesource = new File(UtilsDataStorge.storeFolderOrder + "source");
+//        if (!filesource.exists() && !filesource.isDirectory())
+//        {
+//            filesource.mkdir();
+//        }
 
 
         File fileuyer = new File(UtilsDataStorge.storeFolderOrder + "buyer");
@@ -77,25 +77,36 @@ public class OperationFiles {
                 FileWriter suffixWriter = new FileWriter(UtilsDataStorge.storeFolderOrder + "buyer/" + OrderSystemImpl.buyerIndexFile + i + sffix , true);
                 BufferedWriter bfw = new BufferedWriter(suffixWriter);
                 UtilsDataStorge.buyerFileswriterMap.put(i, bfw);
+                UtilsDataStorge.buyerFileMap.put(i, suffixWriter);
 
                 FileWriter suffixgood = new FileWriter(UtilsDataStorge.storeFolderOrder + "good/" + OrderSystemImpl.goodIndexFile + i+ sffix, true);
                 BufferedWriter bfwgood = new BufferedWriter(suffixgood);
                 UtilsDataStorge.goodFileswriterMap.put(i, bfwgood);
+                UtilsDataStorge.goodFileMap.put(i, suffixgood);
+
 
                 FileWriter suffixorderBuyer = new FileWriter(UtilsDataStorge.storeFolderOrderBybuyer + "order/" + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + i+ sffix, true);
                 BufferedWriter bfwbuyer = new BufferedWriter(suffixorderBuyer);
                 UtilsDataStorge.orderbuyerFileswriterMap.put(i, bfwbuyer);
+                UtilsDataStorge.orderFileMap.put(i, suffixorderBuyer);
 
                 FileWriter suffixordergood = new FileWriter(UtilsDataStorge.storeFolderOrderByGood + "order/" + OrderSystemImpl.orderGoodOrderIdFile + i + sffix, true);
                 BufferedWriter bfwordergood = new BufferedWriter(suffixordergood);
                 UtilsDataStorge.ordergoodFileswriterMap.put(i, bfwordergood);
+                UtilsDataStorge.ordergoodFileMap.put(i, suffixgood);
 
                 FileWriter suffixorder = new FileWriter(UtilsDataStorge.storeFolderOrder + "order/" + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
                 BufferedWriter bfworder = new BufferedWriter(suffixorder);
                 UtilsDataStorge.orderFileswriterMap.put(i, bfworder);
+                UtilsDataStorge.orderFileMap.put(i, suffixorder);
 
             }
 
+//            //写入原始文件
+//            FileWriter source = new FileWriter(UtilsDataStorge.storeFolderOrder + "source/sourceorder" , true);
+//            BufferedWriter bufferedWriter = new BufferedWriter(source);
+//            UtilsDataStorge.orderFileswriterMap.put(40966, bufferedWriter);
+//            UtilsDataStorge.orderFileMap.put(40966, source);
 
             /*
             //buyer
@@ -169,6 +180,11 @@ public class OperationFiles {
             Collection<BufferedWriter> goodfilesOut = UtilsDataStorge.goodFileswriterMap.values();
             for (BufferedWriter bout: goodfilesOut)
                 bout.close();
+
+            Collection<FileWriter> goodwriter = UtilsDataStorge.goodFileMap.values();
+            for (FileWriter goodf : goodwriter)
+                goodf.close();
+
         }
         //order
         else if(flag == 1)
@@ -183,11 +199,26 @@ public class OperationFiles {
             for (BufferedWriter bout: orderfilesOut)
                 bout.close();
 
+            Collection<FileWriter> orderfile = UtilsDataStorge.orderFileMap.values();
+            for (FileWriter bout: orderfile)
+                bout.close();
+            orderfile = UtilsDataStorge.orderbuyerFileMap.values();
+            for (FileWriter bout: orderfile)
+                bout.close();
+            orderfile = UtilsDataStorge.ordergoodFileMap.values();
+            for (FileWriter bout: orderfile)
+                bout.close();
+
+
         }
         //buyer
         else {
             Collection<BufferedWriter> buyerfilesOut = UtilsDataStorge.buyerFileswriterMap.values();
             for (BufferedWriter bout: buyerfilesOut)
+                bout.close();
+
+            Collection<FileWriter> buyerfile = UtilsDataStorge.buyerFileMap.values();
+            for (FileWriter bout: buyerfile)
                 bout.close();
         }
     }
@@ -241,7 +272,7 @@ public class OperationFiles {
     {
 //        UtilsDataStorge.countRandomAccessfile.incrementAndGet();
 
-        long start = System.currentTimeMillis();
+//        long start = System.currentTimeMillis();
         BufferedRandomAccessFile bfr = null;
         try {
              bfr = new BufferedRandomAccessFile(filepath, "r");
