@@ -311,27 +311,7 @@ public class OrderSystemImpl implements OrderSystem {
       try {
         //int linecount =0;
         String line = bfr.readLine();
-        /*
-        while (line != null) {
-//          System.out.println("本行数据 ：" + line);
-          Row kvMap = createKVMapFromLine(line);// 返回的是一条数据的map
-          //这个函数是由子类实现的
 
-          if (Math.abs(kvMap.get("orderid").valueAsLong() - orderid) < 0.0001)
-          {
-            //此时读取到的数索引文件
-            String filename = kvMap.getKV("address").valueAsString().split(",")[0];
-            long offset =Long.valueOf( kvMap.getKV("address").valueAsString().split(",")[1]);
-            Row autalData = createKVMapFromLine(OperationFiles.ReadLineByRandomAccess(filename, offset));
-
-            return autalData;
-          }
-
-          //读取下一行
-          line = bfr.readLine();
-          //linecount +=1;
-        }
-        */
         while (line != null) {
 //          System.out.println("本行数据 ：" + line);
           // 返回的是一条数据的map
@@ -733,7 +713,7 @@ public class OrderSystemImpl implements OrderSystem {
 
         for (Row gooddata : goodlist)
           goodQue.add(gooddata);
-        
+
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -1043,9 +1023,9 @@ public class OrderSystemImpl implements OrderSystem {
 
           //order
             try {
-               int indexorder = Utils.FNVHash1(orderid);
-               int indexOrderBuyer = Utils.FNVHash1(buyerid);
-               int indexOrderGood = Utils.FNVHash1(goodid);
+               int indexorder = Utils.FNVHash1Order(orderid);
+               int indexOrderBuyer = Utils.FNVHash1Order(buyerid);
+               int indexOrderGood = Utils.FNVHash1Order(goodid);
               String contentOrder = "orderid:" + orderid + "\t"  + "address:" + address.trim() ;
               String contentOrderBuyer = "buyerid:" + buyerid + "\t" +"createtime:" + createtime + "\t" + "address:" + address.trim();
               String contentOrderGood = "goodid:" + goodid + "\t"  + "address:" + address.trim();
@@ -1356,7 +1336,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
@@ -1697,7 +1677,7 @@ public class OrderSystemImpl implements OrderSystem {
       Row query = new Row();
       query.putKV("orderid", orderId);
 
-      int indexSuffix = Utils.FNVHash1(String.valueOf(orderId));
+      int indexSuffix = Utils.FNVHash1Order(String.valueOf(orderId));
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
 //        System.out.println("查询的文件:" + OrderSystemImpl.orderIdexFile + indexSuffix + ".txt");
@@ -1836,7 +1816,7 @@ public class OrderSystemImpl implements OrderSystem {
     if (queryByBuyerCache.get(cacheKey) == null) {
 
 
-      int buyerindex = Utils.FNVHash1(buyerid);
+      int buyerindex = Utils.FNVHash1Order(buyerid);
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -1931,7 +1911,7 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
     if (queryBySalerCache.get(cacheKey) == null) {
-      int goodindex = Utils.FNVHash1(goodid);
+      int goodindex = Utils.FNVHash1Order(goodid);
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -2031,7 +2011,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (sumOrderCache.get(cacheKey) == null) {
 
-      int goodindex = Utils.FNVHash1(goodid);
+      int goodindex = Utils.FNVHash1Order(goodid);
 
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();

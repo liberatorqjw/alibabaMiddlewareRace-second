@@ -72,6 +72,20 @@ public class Utils {
         return Math.abs(hash % 4096);
     }
 
+    public static int FNVHash1Order(String data)
+    {
+        final int p = 16777619;
+        int hash = (int)2166136261L;
+        for(int i=0;i<data.length();i++)
+            hash = (hash ^ data.charAt(i)) * p;
+        hash += hash << 13;
+        hash ^= hash >> 7;
+        hash += hash << 3;
+        hash ^= hash >> 17;
+        hash += hash << 5;
+        return Math.abs(hash % 8192);
+    }
+
     public static void  main(String[] args)
     {
         long startTime = System.currentTimeMillis();

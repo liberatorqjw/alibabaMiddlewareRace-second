@@ -85,6 +85,25 @@ public class OperationFiles {
                 UtilsDataStorge.goodFileMap.put(i, suffixgood);
 
 
+//                FileWriter suffixorderBuyer = new FileWriter(UtilsDataStorge.storeFolderOrderBybuyer + "order/" + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + i+ sffix, true);
+//                BufferedWriter bfwbuyer = new BufferedWriter(suffixorderBuyer);
+//                UtilsDataStorge.orderbuyerFileswriterMap.put(i, bfwbuyer);
+//                UtilsDataStorge.orderFileMap.put(i, suffixorderBuyer);
+//
+//                FileWriter suffixordergood = new FileWriter(UtilsDataStorge.storeFolderOrderByGood + "order/" + OrderSystemImpl.orderGoodOrderIdFile + i + sffix, true);
+//                BufferedWriter bfwordergood = new BufferedWriter(suffixordergood);
+//                UtilsDataStorge.ordergoodFileswriterMap.put(i, bfwordergood);
+//                UtilsDataStorge.ordergoodFileMap.put(i, suffixordergood);
+//
+//                FileWriter suffixorder = new FileWriter(UtilsDataStorge.storeFolderOrder + "order/" + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
+//                BufferedWriter bfworder = new BufferedWriter(suffixorder);
+//                UtilsDataStorge.orderFileswriterMap.put(i, bfworder);
+//                UtilsDataStorge.orderFileMap.put(i, suffixorder);
+
+            }
+
+            for (int i =0; i< 8192; i++)
+            {
                 FileWriter suffixorderBuyer = new FileWriter(UtilsDataStorge.storeFolderOrderBybuyer + "order/" + OrderSystemImpl.orderBuyerCreateTimeOrderIdFile + i+ sffix, true);
                 BufferedWriter bfwbuyer = new BufferedWriter(suffixorderBuyer);
                 UtilsDataStorge.orderbuyerFileswriterMap.put(i, bfwbuyer);
@@ -93,13 +112,12 @@ public class OperationFiles {
                 FileWriter suffixordergood = new FileWriter(UtilsDataStorge.storeFolderOrderByGood + "order/" + OrderSystemImpl.orderGoodOrderIdFile + i + sffix, true);
                 BufferedWriter bfwordergood = new BufferedWriter(suffixordergood);
                 UtilsDataStorge.ordergoodFileswriterMap.put(i, bfwordergood);
-                UtilsDataStorge.ordergoodFileMap.put(i, suffixgood);
+                UtilsDataStorge.ordergoodFileMap.put(i, suffixordergood);
 
                 FileWriter suffixorder = new FileWriter(UtilsDataStorge.storeFolderOrder + "order/" + OrderSystemImpl.orderIdexFile +  String.valueOf(i) + sffix, true);
                 BufferedWriter bfworder = new BufferedWriter(suffixorder);
                 UtilsDataStorge.orderFileswriterMap.put(i, bfworder);
                 UtilsDataStorge.orderFileMap.put(i, suffixorder);
-
             }
 
 //            //写入原始文件
