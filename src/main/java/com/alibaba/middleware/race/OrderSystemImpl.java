@@ -855,7 +855,7 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
                  String content = "goodid:" + goodid+ "\t" + "address:"+ address.trim();
 
-                  int index = Utils.FNVHash1Order(goodid);
+                  int index = Utils.FNVHash1(goodid);
 //                  System.out.println("good的文件索引: " + index);
                   //在索引文件中创建索引记录
                   outputWriters.get(index).write(content + "\n");
@@ -924,7 +924,7 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
 
                   String content = "buyerid:" + buyerid + "\t"  + "address:" + address.trim() ;
-                  int index = Utils.FNVHash1Order(buyerid);
+                  int index = Utils.FNVHash1(buyerid);
 //                  System.out.println("buyer的文件索引: " + index);
                   outputWriters.get(index).write(content+ "\n");
                 } catch (Exception e) {
@@ -1336,7 +1336,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
@@ -1378,11 +1378,11 @@ public class OrderSystemImpl implements OrderSystem {
 
 
     start = System.currentTimeMillis();
-    String goodid = "al-bba5-9856daeafce1";
-    String salerid = "tm-bad2-ec455f2bcbc0";
+    String goodid = "dd-864e-87354f4afac5";
+    String salerid = "tm-967d-78a3c43e7d37";
     System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
     List<String> querykeys  = new ArrayList<String>();
-    querykeys.add("buyerid");
+    querykeys.add("a_g_3387");
 //    querykeys.add("a_o_12490");
 //    querykeys.add("a_o_4082");
 //    querykeys.add("buyerid");
@@ -1408,8 +1408,8 @@ public class OrderSystemImpl implements OrderSystem {
     end = System.currentTimeMillis();
     System.out.println("sum sonst of the time is " + (end - start));
 
-    goodid = "aye-9cda-56d7ce06059d";
-    attr = "a_b_31770";
+    goodid = "al-a347-efa7ebc2d021";
+    attr = "price";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     System.out.println(os.sumOrdersByGood(goodid, attr));
 
@@ -1727,7 +1727,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (joinbuyerCache.get(buyerid) == null) {
 //      String suffix = Utils.getGoodSuffix(orderData.getKV("buyerid").valueAsString());
-      int buyerindex = Utils.FNVHash1Order(buyerid);
+      int buyerindex = Utils.FNVHash1(buyerid);
       //索引map
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -1747,7 +1747,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (joingoodCache.get(goodid) == null) {
 //      String suffixx = Utils.getGoodSuffix(orderData.getKV("goodid").valueAsString());
-      int goodindex = Utils.FNVHash1Order(goodid);
+      int goodindex = Utils.FNVHash1(goodid);
       //索引map
       try {
 
