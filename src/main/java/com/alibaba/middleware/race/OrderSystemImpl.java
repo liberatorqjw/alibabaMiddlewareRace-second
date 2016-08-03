@@ -869,7 +869,7 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
                  String content = "goodid:" + goodid+ "\t" + "address:"+ address.trim();
 
-                  int index = Utils.FNVHash1(goodid);
+                  int index = Utils.FNVHash1Order(goodid);
 //                  System.out.println("good的文件索引: " + index);
                   //在索引文件中创建索引记录
                   outputWriters.get(index).write(content + "\n");
@@ -938,7 +938,7 @@ public class OrderSystemImpl implements OrderSystem {
                 try {
 
                   String content = "buyerid:" + buyerid + "\t"  + "address:" + address.trim() ;
-                  int index = Utils.FNVHash1(buyerid);
+                  int index = Utils.FNVHash1Order(buyerid);
 //                  System.out.println("buyer的文件索引: " + index);
                   outputWriters.get(index).write(content+ "\n");
                 } catch (Exception e) {
@@ -1447,7 +1447,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
@@ -1838,7 +1838,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (joinbuyerCache.get(buyerid) == null) {
 //      String suffix = Utils.getGoodSuffix(orderData.getKV("buyerid").valueAsString());
-      int buyerindex = Utils.FNVHash1(buyerid);
+      int buyerindex = Utils.FNVHash1Order(buyerid);
       //索引map
       try {
         DataIndexFileHandler DIF = new DataIndexFileHandler();
@@ -1858,7 +1858,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     if (joingoodCache.get(goodid) == null) {
 //      String suffixx = Utils.getGoodSuffix(orderData.getKV("goodid").valueAsString());
-      int goodindex = Utils.FNVHash1(goodid);
+      int goodindex = Utils.FNVHash1Order(goodid);
       //索引map
       try {
 
