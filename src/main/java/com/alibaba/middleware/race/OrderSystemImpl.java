@@ -473,6 +473,7 @@ public class OrderSystemImpl implements OrderSystem {
 
       };
       ExecutorService service = Executors.newFixedThreadPool(8);
+      CompletionService<List<Row>> cs = new ExecutorCompletionService<List<Row>>(service);
 
       PriorityQueue<Row> buyerQue = new PriorityQueue<Row>(11, OrderIsdn);
       List<Row> buyerList = new ArrayList<Row>();
@@ -524,21 +525,29 @@ public class OrderSystemImpl implements OrderSystem {
       }
 
       //全部的索引读取结束以后，开始读取真实的原始数据
-      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
+//      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
+      int size = offsetMap.keySet().size();
 
       for (String keyfilename: offsetMap.keySet())
       {
 
-        service.execute(new ReadSourceOrder(keyfilename, offsetMap.get(keyfilename), buyerList, latch));
+//        service.execute(new ReadSourceOrder(keyfilename, offsetMap.get(keyfilename), buyerList, latch));
+         cs.submit(new ReadSourceOrderQuery(keyfilename, offsetMap.get(keyfilename)));
       }
 
       try {
-        latch.await();
+//        latch.await();
         service.shutdown();
-
-        for (Row buyerdata : buyerList)
-          buyerQue.add(buyerdata);
-      } catch (InterruptedException e) {
+        for (int i =0; i< size; i++)
+        {
+          for (Row data : cs.take().get())
+          {
+            buyerQue.add(data);
+          }
+        }
+//        for (Row buyerdata : buyerList)
+//          buyerQue.add(buyerdata);
+      } catch (Exception e) {
         e.printStackTrace();
       }
       return buyerQue;
@@ -655,6 +664,7 @@ public class OrderSystemImpl implements OrderSystem {
         }
       };
       ExecutorService service = Executors.newFixedThreadPool(8);
+      CompletionService<List<Row>> cs = new ExecutorCompletionService<List<Row>>(service);
 
       PriorityQueue<Row> goodQue = new PriorityQueue<Row>(11, OrderIsdn);
       List<Row> goodlist = new ArrayList<Row>();
@@ -698,23 +708,28 @@ public class OrderSystemImpl implements OrderSystem {
         bfr.close();
       }
 
-      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
+//      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
+      int size = offsetMap.keySet().size();
 
       //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
       {
 
-        service.execute(new ReadSourceOrder(RealFilename, offsetMap.get(RealFilename), goodlist, latch));
-
+//        service.execute(new ReadSourceOrder(RealFilename, offsetMap.get(RealFilename), goodlist, latch));
+       cs.submit(new ReadSourceOrderQuery(RealFilename,offsetMap.get(RealFilename) ));
       }
       try {
-        latch.await();
+//        latch.await();
         service.shutdown();
+        for (int i =0; i<size; i++)
+        {
+          for(Row data : cs.take().get())
+              goodQue.add(data);
+        }
+//        for (Row gooddata : goodlist)
+//          goodQue.add(gooddata);
 
-        for (Row gooddata : goodlist)
-          goodQue.add(gooddata);
-
-      } catch (InterruptedException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
       return goodQue;
@@ -744,6 +759,7 @@ public class OrderSystemImpl implements OrderSystem {
       }
       };
       ExecutorService service  = Executors.newFixedThreadPool(8);
+      CompletionService<List<ResultImpl>> cs = new ExecutorCompletionService<List<ResultImpl>>(service);
 
       List<ResultImpl> goodlist =new ArrayList<ResultImpl>();
       goodlist = Collections.synchronizedList(goodlist);
@@ -785,30 +801,28 @@ public class OrderSystemImpl implements OrderSystem {
         bfr.close();
       }
 
-      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
+//      CountDownLatch latch = new CountDownLatch(offsetMap.keySet().size());
+      int size = offsetMap.keySet().size();
 
 //      //按照文件等顺序读取真实的数据
       for (String RealFilename : offsetMap.keySet())
       {
-//        BufferedRandomAccessFile bufAccess = new BufferedRandomAccessFile(RealFilename, "r", 1<<20);
-//        String realLine = null;
-//
-//        while (offsetMap.get(RealFilename).size() >0)
-//        {
-//          bufAccess.seek(offsetMap.get(RealFilename).poll());
-//          realLine = new String(bufAccess.readLine().getBytes("iso-8859-1"), "utf-8");
-//          Row autalData = createKVMapFromLine(realLine);
-////          goodlist.add(autalData);
-//          goodlist.add(createResultFromOrderData(autalData, comparekeys));
-//        }
-//        bufAccess.close();
-        service.execute(new ReadSourceOrderTolist(RealFilename, offsetMap.get(RealFilename), goodlist, latch, comparekeys));
+
+//        service.execute(new ReadSourceOrderTolist(RealFilename, offsetMap.get(RealFilename), goodlist, latch, comparekeys));
+//          Future<List<ResultImpl>> future = service.submit(new ReadsourceOrderQuerySum(RealFilename, offsetMap.get(RealFilename), comparekeys));
+        cs.submit(new ReadsourceOrderQuerySum(RealFilename, offsetMap.get(RealFilename), comparekeys));
       }
 
       try {
-        latch.await();
         service.shutdown();
-      } catch (InterruptedException e) {
+        for (int i =0; i< size; i++)
+        {
+          for (ResultImpl data : cs.take().get())
+          {
+            goodlist.add(data);
+          }
+        }
+      } catch (Exception e) {
         e.printStackTrace();
       }
       return goodlist;
@@ -1167,6 +1181,103 @@ public class OrderSystemImpl implements OrderSystem {
       }
     }
   }
+
+
+  private class ReadSourceOrderQuery implements Callable<List<Row>>{
+
+    private String filename;
+    private PriorityQueue<Long> offsetQueue;
+    private List<Row> queue;
+
+    public ReadSourceOrderQuery(String filename, PriorityQueue<Long> offsetQueue) {
+      this.filename = filename;
+      this.offsetQueue = offsetQueue;
+      this.queue = new ArrayList<Row>();
+    }
+
+    @Override
+    public List<Row> call() throws Exception {
+
+      BufferedRandomAccessFile bufAccsess = null; //1M的buffer
+      try {
+        bufAccsess = new BufferedRandomAccessFile(filename, "r", 1<<20);
+
+        String Realine = null;
+
+        while (offsetQueue.size() >0)
+        {
+
+          bufAccsess.seek(offsetQueue.poll());
+          Realine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
+          Row autalData = createKVMapFromLine(Realine);
+          queue.add(autalData);
+
+        }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try {
+        bufAccsess.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return queue;
+    }
+  }
+
+
+  private class ReadsourceOrderQuerySum implements Callable<List<ResultImpl>>
+  {
+    private String filename;
+    private PriorityQueue<Long> offsetQueue;
+    private List<ResultImpl> queue;
+    HashSet<String> querykeys;
+
+    public ReadsourceOrderQuerySum(String filename, PriorityQueue<Long> offsetQueue, HashSet<String> querykeys) {
+      this.filename = filename;
+      this.offsetQueue = offsetQueue;
+      this.querykeys = querykeys;
+      this.queue = new ArrayList<ResultImpl>();
+
+    }
+
+    @Override
+    public List<ResultImpl> call() throws Exception {
+      BufferedRandomAccessFile bufAccsess = null; //1M的buffer
+      try {
+        bufAccsess = new BufferedRandomAccessFile(filename, "r", 1<<20);
+
+
+        String realLine = null;
+        while (offsetQueue.size() >0)
+        {
+
+          bufAccsess.seek(offsetQueue.poll());
+          realLine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
+          Row autalData = createKVMapFromLine(realLine);
+          queue.add(createResultFromOrderData(autalData, querykeys));
+
+        }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try {
+        bufAccsess.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return queue;
+    }
+  }
+
   /**
    *  多线程构建树
    */
@@ -1360,15 +1471,15 @@ public class OrderSystemImpl implements OrderSystem {
 
 
 
-    String buyerid = "ap-8a57-454ce6fcfb19";
-    long startTime = 1470344717;
-    long endTime = 1483767105;
+    String buyerid = "tp-b0a2-fd0ca6720971";
+    long startTime = 1459353413;
+    long endTime = 1477624470;
     start = System.currentTimeMillis();
     System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
     Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
-//    while (it.hasNext()) {
-//      System.out.println(it.next());
-//    }
+    while (it.hasNext()) {
+      System.out.println(it.next().get("orderid"));
+    }
 
     end = System.currentTimeMillis();
     //long end = System.currentTimeMillis();
