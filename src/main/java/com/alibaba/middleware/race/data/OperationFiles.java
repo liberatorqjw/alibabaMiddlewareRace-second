@@ -298,7 +298,7 @@ public class OperationFiles {
 //        UtilsDataStorge.countRandomAccessfile.incrementAndGet();
 
 //        long start = System.currentTimeMillis();
-        BufferedRandomAccessFile bfr = null;
+        RandomAccessFile bfr = null;
         try {
              bfr = new BufferedRandomAccessFile(filepath, "r");
              bfr.seek(offset);

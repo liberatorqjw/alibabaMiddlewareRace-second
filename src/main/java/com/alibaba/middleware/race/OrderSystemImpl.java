@@ -1256,7 +1256,10 @@ public class OrderSystemImpl implements OrderSystem {
         while (offsetQueue.size() >0)
         {
 
-          bufAccsess.seek(offsetQueue.poll());
+          long offsetItem = offsetQueue.poll();
+          System.out.println(filename + ":" +offsetItem);
+
+          bufAccsess.seek(offsetItem);
           realLine = new String(bufAccsess.readLine().getBytes("iso-8859-1"), "utf-8");
           Row autalData = createKVMapFromLine(realLine);
           queue.add(createResultFromOrderData(autalData, querykeys));
@@ -1447,7 +1450,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     long start = System.currentTimeMillis();
 
-    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+//    os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
 
     long end =0;
     System.out.println( "construct cost of time :" + (System.currentTimeMillis() - start) + "ms");
@@ -1471,15 +1474,18 @@ public class OrderSystemImpl implements OrderSystem {
 
 
 
-    String buyerid = "tp-b0a2-fd0ca6720971";
-    long startTime = 1459353413;
-    long endTime = 1477624470;
+    String buyerid = "wx-9ff4-30089f1ffb00";
+    long startTime = 1479231494;
+    long endTime = 1480704035;
     start = System.currentTimeMillis();
     System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
     Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
+    count = 0;
     while (it.hasNext()) {
       System.out.println(it.next().get("orderid"));
+      count++;
     }
+    System.out.println(count);
 
     end = System.currentTimeMillis();
     //long end = System.currentTimeMillis();
@@ -1510,8 +1516,8 @@ public class OrderSystemImpl implements OrderSystem {
      System.out.println(count);
      System.out.println("search the saler cost of the time "  + (System.currentTimeMillis() - start) + "ms");
 
-    goodid = "gd-b3f9-c60b355a54ce";
-    String attr = "a_g_28464";
+    goodid = "dd-8d26-a7be1a155f5d";
+    String attr = "a_o_18278";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
 
     start = System.currentTimeMillis();
@@ -1519,8 +1525,8 @@ public class OrderSystemImpl implements OrderSystem {
     end = System.currentTimeMillis();
     System.out.println("sum sonst of the time is " + (end - start));
 
-    goodid = "al-a347-efa7ebc2d021";
-    attr = "price";
+    goodid = "dd-8ad6-8de99e8d7dad";
+    attr = "amount";
     System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
     System.out.println(os.sumOrdersByGood(goodid, attr));
 
